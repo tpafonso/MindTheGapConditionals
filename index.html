@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conditionals: mind the gap!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: one projected screen. Header = tube line of the four rounds; stage = question; footer = team scoreboard. */
+  --ink:#0d1b3d;
+  --paper:#eef1f6;
+  --card:#ffffff;
+  --red:#c8102e;
+  --muted:#56627c;
+  --rule:#d3d9e6;
+  --ok:#1d7a3e; --ok-bg:#e2f3e7;
+  --bad:#b3261e; --bad-bg:#fbe7e5;
+  --display:"Lexend","Helvetica Neue",Arial,sans-serif;
+  --body:"Lexend","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --t-zero:#0098d4; --t-first:#00782a; --t-second:#003688;
+  --t-third:#b36305; --t-mixa:#9b0056; --t-mixb:#6950a1;
+  --bar:#0d1b3d; --on-c:#ffffff; --info:#1f4fa3; --info-bg:#e3ecfb;
+  --yellow:#ffd300; --yellow-ink:#7a5c00;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --ink:#e8edf7; --paper:#0e1526; --card:#18223a; --red:#ef4458; --muted:#9daac4; --rule:#2d3b5a;
+  --ok:#4cc27a; --ok-bg:#15392a; --bad:#ff7a6e; --bad-bg:#40191b;
+  --t-zero:#46bfee; --t-first:#3dbb67; --t-second:#7d9ff0; --t-third:#eb9a45; --t-mixa:#ec6aa8; --t-mixb:#ad97e6;
+  --bar:#070d1c; --on-c:#0b1220; --info:#a9c3ff; --info-bg:#1d2d52; --yellow:#ffd300; --yellow-ink:#ffd300;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme]){
+    --ink:#e8edf7; --paper:#0e1526; --card:#18223a; --red:#ef4458; --muted:#9daac4; --rule:#2d3b5a;
+    --ok:#4cc27a; --ok-bg:#15392a; --bad:#ff7a6e; --bad-bg:#40191b;
+    --t-zero:#46bfee; --t-first:#3dbb67; --t-second:#7d9ff0; --t-third:#eb9a45; --t-mixa:#ec6aa8; --t-mixb:#ad97e6;
+    --bar:#070d1c; --on-c:#0b1220; --info:#a9c3ff; --info-bg:#1d2d52; --yellow:#ffd300; --yellow-ink:#ffd300;
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:clamp(15px,1.15vw + 8px,20px);line-height:1.5;
+  display:grid;grid-template-rows:auto 1fr auto;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.1}
+
+/* ── Header ───────────────────────────── */
+header{
+  background:var(--bar);color:#fff;display:flex;align-items:center;gap:8px 16px;
+  padding:8px clamp(16px,3vw,40px) 6px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.01em}
+.roundel{width:34px;height:34px;flex:none}
+.brand small{display:block;font-weight:500;opacity:.7;font-size:.75em;letter-spacing:.02em}
+.line{order:3;flex:1 1 100%;min-width:0;display:flex;align-items:center;position:relative;padding:2px 0 0}
+#gramBtn{margin-left:auto}
+.line::before{content:"";position:absolute;left:10px;right:10px;top:50%;height:6px;margin-top:-3px;background:rgba(255,255,255,.22);border-radius:3px}
+.line .fill{position:absolute;left:10px;top:50%;height:6px;margin-top:-3px;background:var(--linec,var(--red));border-radius:3px;transition:width .4s}
+.stops{position:relative;display:flex;justify-content:space-between;width:100%}
+.stop{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.72em;font-weight:600;opacity:.6;min-width:20px}
+.stop i{width:20px;height:20px;border-radius:50%;background:var(--bar);border:4px solid rgba(255,255,255,.5)}
+.stop.done{opacity:.85}.stop.done i{border-color:var(--linec,var(--red));background:var(--linec,var(--red))}
+.stop.now{opacity:1}.stop.now i{border-color:#fff;background:var(--linec,var(--red));box-shadow:0 0 0 4px rgba(255,255,255,.25);box-shadow:0 0 0 4px color-mix(in srgb,var(--linec,var(--red)) 40%,transparent)}
+.stop span{white-space:nowrap}
+.hbtn{color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:6px 12px;font-size:.8em;font-weight:600}
+.hbtn:hover{background:rgba(255,255,255,.1)}
+
+/* ── Stage ───────────────────────────── */
+main{overflow:auto;padding:clamp(16px,3vw,40px)}
+.stage{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-weight:700;font-size:.8em;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.qbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qcount{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.lead{font-size:1.05em;font-weight:600;color:var(--muted)}
+.sentence{
+  background:var(--card);border-radius:14px;border-left:10px solid var(--linec,var(--red));
+  padding:clamp(18px,2.6vw,34px) clamp(18px,3vw,40px);
+  font-family:var(--display);font-weight:800;font-size:clamp(22px,2.2vw + 8px,40px);line-height:1.2;
+  box-shadow:0 2px 0 var(--rule);
+}
+.sentence .src{display:block;font-family:var(--body);font-size:.36em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.gap{display:inline-block;min-width:4.2em;border-bottom:5px solid var(--red);color:transparent;line-height:1}
+.gap.filled{color:var(--red);min-width:0;padding:0 .1em}
+
+/* options */
+.opts{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.opts.types{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opt{
+  display:flex;align-items:center;gap:14px;text-align:left;background:var(--card);
+  border:3px solid var(--rule);border-radius:12px;padding:14px 16px;font-weight:600;font-size:1.05em;
+  transition:border-color .15s,transform .1s;
+}
+.opt:hover{border-color:var(--ink)}
+.opt:active{transform:translateY(1px)}
+.key{flex:none;width:2em;height:2em;border-radius:8px;display:grid;place-items:center;background:var(--ink);color:var(--card);font-weight:800;font-size:.9em}
+.opt.type{border-left:10px solid var(--c)}
+.opt.type .key{background:var(--c);color:var(--on-c)}
+.opt .lab{display:flex;flex-direction:column;line-height:1.2}
+.opt .hint{font-weight:500;font-size:.78em;color:var(--muted)}
+.opt.sel{border-color:var(--ink);box-shadow:0 0 0 3px var(--ink) inset}
+.opt.is-correct{border-color:var(--ok);background:var(--ok-bg)}
+.opt.is-correct .key{background:var(--ok)}
+.opt.is-wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.is-wrong .key{background:var(--bad)}
+.opt.dim{opacity:.5}
+.opt:disabled{cursor:default}
+
+/* feedback */
+.feedback{background:var(--card);border-radius:14px;padding:18px 22px;border-top:6px solid var(--ok);display:flex;flex-direction:column;gap:10px}
+.fb-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{background:var(--c,var(--ink));color:var(--on-c);border-radius:999px;padding:4px 14px;font-weight:800;font-size:.85em}
+.formula{font-family:var(--mono);font-weight:600;font-size:.85em;background:var(--paper);padding:4px 10px;border-radius:6px}
+
+/* production */
+.target{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.target .pill{font-size:1.1em;padding:8px 18px}
+.prompt{font-family:var(--display);font-weight:800;font-size:clamp(24px,2.4vw + 10px,42px);line-height:1.2}
+.write{border:3px dashed var(--rule);border-radius:14px;padding:18px 22px;color:var(--muted);font-weight:600}
+.model{background:var(--card);border-radius:14px;padding:18px 22px;border-top:6px solid var(--red)}
+.model p{font-family:var(--display);font-weight:700;font-size:1.25em;margin-top:6px}
+.model p+p{margin-top:4px}
+
+/* controls */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.controls .spacer{flex:1}
+.btn{border:3px solid var(--ink);background:var(--card);border-radius:10px;padding:10px 18px;font-weight:800}
+.btn:hover{background:var(--paper)}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn.primary:hover{background:#a50d26;border-color:#a50d26}
+.btn.dark{background:var(--ink);color:var(--card)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.kbd{font-size:.75em;color:var(--muted)}
+
+/* timer */
+.timer{display:flex;align-items:center;gap:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.tbar{width:160px;height:12px;border-radius:6px;background:var(--rule);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--ok);transition:width .25s linear}
+.timer.low .tbar i{background:var(--red)}
+.timer.up{color:var(--red)}
+
+/* setup + intro + end */
+.hero{display:flex;flex-direction:column;gap:14px}
+.hero h1{font-size:clamp(34px,4vw + 12px,72px);font-weight:900;letter-spacing:-.01em}
+.hero h1 .red{color:var(--red)}
+.hero p{max-width:62ch;color:var(--muted);font-size:1.05em}
+.panel{background:var(--card);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:1.15em}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px}
+.teamset{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.teamset label{display:flex;flex-direction:column;gap:4px;font-size:.8em;font-weight:700;color:var(--muted)}
+.teamset input,select{border:2px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--card);font-weight:600;color:var(--ink);font-size:1.1em}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rlist{list-style:none;display:flex;flex-direction:column;gap:10px}
+.rlist li{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.rlist li:last-child{border-bottom:0;padding-bottom:0}
+.rnum{grid-row:span 2;width:40px;height:40px;border-radius:50%;border:6px solid var(--red);display:grid;place-items:center;font-weight:900;font-size:.95em}
+.rlist strong{font-size:1.05em}
+.intro{display:flex;flex-direction:column;gap:18px;padding:clamp(10px,3vw,40px) 0}
+.intro .big{font-size:clamp(40px,5vw + 10px,84px);font-weight:900}
+.intro p{font-size:1.2em;max-width:60ch}
+.podium{display:flex;flex-direction:column;gap:10px}
+.prow{color:var(--ink);display:grid;grid-template-columns:3em 1fr auto;align-items:center;gap:14px;background:var(--card);border-radius:12px;padding:12px 18px;font-weight:800;font-size:1.2em}
+.prow.first{border:4px solid var(--red)}
+.prow .pos{font-size:1.4em;color:var(--red)}
+.prow .pts{font-variant-numeric:tabular-nums}
+
+/* ── Scoreboard ───────────────────────── */
+footer{background:var(--card);border-top:4px solid var(--ink);padding:10px clamp(16px,3vw,40px)}
+.scores{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.team{display:flex;align-items:center;gap:6px;border:2px solid var(--rule);border-radius:999px;padding:3px 4px 3px 12px;font-size:.88em}
+.team .nm{font-weight:700}
+.team .sc{font-weight:900;font-size:1.2em;min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums}
+.team button{width:30px;height:30px;border-radius:50%;border:0;font-weight:900;font-size:1.1em;background:var(--paper)}
+.team button.plus{background:var(--ink);color:var(--card)}
+.team.bump{animation:bump .4s}
+@keyframes bump{50%{transform:scale(1.08)}}
+.hide{display:none!important}
+.solo-score{display:flex;align-items:center;gap:18px;justify-content:center;font-weight:700;flex-wrap:wrap}
+.solo-score .big{font-size:1.5em;font-weight:900;font-variant-numeric:tabular-nums}
+.solo-score .meter{width:220px;height:12px;background:var(--rule);border-radius:6px;overflow:hidden}
+.solo-score .meter i{display:block;height:100%;background:var(--ok)}
+.lines{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.lc-year{font-size:.8em;font-weight:800;color:var(--lci,var(--lc));text-transform:uppercase;letter-spacing:.06em}
+.linecard{position:relative;text-align:left;background:var(--card);border:3px solid var(--rule);border-radius:14px;padding:18px 20px 16px 30px;display:flex;flex-direction:column;gap:4px;color:var(--ink)}
+.linecard:hover{border-color:var(--lc)}
+.linecard.on{border-color:var(--lc);box-shadow:0 0 0 3px var(--lc) inset}
+.lc-bar{position:absolute;left:0;top:0;bottom:0;width:12px;background:var(--lc);border-radius:11px 0 0 11px}
+.lc-name{font-family:var(--display);font-weight:900;font-size:1.4em;color:var(--lci,var(--lc))}
+.lc-sub{font-weight:700}
+.lc-stops{color:var(--muted);font-size:.85em}
+.modecards{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+.modecards .panel{border-top:8px solid var(--ink)}
+.modecards .panel.solo{border-top-color:var(--red)}
+.panel .sub{color:var(--muted);max-width:56ch}
+textarea{width:100%;min-height:5.5em;border:3px solid var(--rule);border-radius:12px;padding:12px 14px;font:inherit;font-size:1.1em;font-weight:600;color:var(--ink);background:var(--card);resize:vertical}
+textarea:focus{border-color:var(--ink);outline:none}
+.verdict{font-weight:800}
+.verdict.ok{color:var(--ok)}.verdict.bad{color:var(--bad)}
+.breakdown{display:flex;flex-direction:column;gap:8px}
+.brow{display:grid;grid-template-columns:1fr auto;gap:12px;background:var(--card);border-radius:10px;padding:12px 18px;font-weight:700}
+.brow span:last-child{font-variant-numeric:tabular-nums}
+@media (max-width:760px){.modecards,.lines{grid-template-columns:1fr}}
+
+@media (max-width:760px){
+  .opts,.opts.types{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+    .stop span{display:none}
+  .tbar{width:100px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ── Grammar tab ───────────────────── */
+.g-intro{background:var(--card);border-radius:14px;padding:18px 22px;border-left:8px solid var(--red);max-width:none}
+.g-nav{position:sticky;top:calc(-1 * clamp(16px,3vw,40px));z-index:5;display:flex;gap:8px;flex-wrap:wrap;background:var(--paper);padding:12px 0}
+.g-chip{border:2px solid var(--c,var(--ink));color:var(--c,var(--ink));background:var(--card);border-radius:999px;padding:4px 14px;font-weight:700;font-size:.85em}
+.g-chip:hover{background:var(--c,var(--ink));color:var(--card)}
+.g-sec{--tint:var(--paper);--tint:color-mix(in srgb,var(--c) 11%,var(--card));display:flex;flex-direction:column;scroll-margin-top:72px}
+.g-head{display:flex;align-items:stretch;flex-wrap:wrap}
+.g-label{background:var(--c);color:var(--on-c);font-weight:800;padding:10px 16px;border-radius:12px 0 0 0;display:flex;align-items:center}
+.g-title{flex:1;min-width:220px;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;font-weight:800;border-radius:0 12px 0 0;font-size:1.05em}
+.tts{border:2px solid var(--rule);background:var(--card);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.8em;flex:none}
+.tts:hover{border-color:var(--ink)}
+.tts.playing{background:var(--red);border-color:var(--red);color:var(--card)}
+.g-card{background:var(--card);padding:20px 22px;border-top:4px solid var(--c);display:flex;flex-direction:column;gap:16px}
+.g-sec>:last-child{border-radius:0 0 12px 12px}
+.g-note{font-size:1.05em;max-width:78ch}
+.g-note strong,.g-rule strong{color:var(--c)}
+.g-struct{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.g-part{border-left:5px solid var(--c);background:var(--tint);padding:12px 14px;border-radius:0 8px 8px 0}
+.g-part .lbl{font-size:.72em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.g-part .form{font-family:var(--mono);font-weight:600;font-size:.82em;margin:4px 0;line-height:1.4}
+.g-part .ex{color:var(--muted);font-style:italic}
+.g-exs{display:flex;flex-direction:column;gap:12px}
+.g-ex .el{font-size:.75em;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c);display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.g-ex .es{background:var(--tint);border-left:4px solid var(--c);padding:10px 14px;font-size:1.05em}
+.g-ex .es b{color:var(--c)}
+.tag{font-size:.95em;font-weight:800;padding:1px 7px;border-radius:4px;letter-spacing:.04em}
+.tag.aff{background:var(--ok-bg);color:var(--ok)}.tag.neg{background:var(--bad-bg);color:var(--bad)}.tag.int{background:var(--info-bg);color:var(--info)}
+.g-rule{background:var(--tint);border-left:4px solid var(--c);padding:12px 16px;border-radius:0 8px 8px 0;max-width:none}
+.g-err{background:var(--card);border-top:4px solid var(--bad);padding:16px 22px;display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.g-err .row{display:flex;gap:10px;align-items:baseline;font-size:1.05em}
+.g-err .tw,.g-err .tok{flex:none;font-size:.7em;font-weight:800;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em}
+.g-err .tw{background:var(--bad-bg);color:var(--bad)}.g-err .tok{background:var(--ok-bg);color:var(--ok)}
+.g-err .why{color:var(--muted);font-size:.9em}
+.struck{text-decoration:line-through;color:var(--muted)}
+.tablewrap{overflow-x:auto;border-radius:0 0 12px 12px;background:var(--card)}
+.g-table{width:100%;border-collapse:collapse;min-width:640px}
+.g-table th{background:var(--ink);color:var(--card);text-align:left;padding:10px 14px;font-size:.72em;letter-spacing:.08em;text-transform:uppercase}
+.g-table td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+.g-table tr:last-child td{border-bottom:0}
+.g-table td:first-child{font-weight:800;color:var(--c,var(--ink));white-space:nowrap}
+.g-table .f{font-family:var(--mono);font-size:.82em}
+.glink{border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:3px 14px;font-weight:700;font-size:.85em}
+.glink:hover{background:var(--ink);color:var(--card)}
+.fb-head .glink{margin-left:auto}
+@media (max-width:760px){.g-struct{grid-template-columns:1fr}}
+.bi{display:flex;flex-direction:column;gap:6px}
+.bi p{margin:0;max-width:80ch}
+.lg{display:inline-block;font-size:.62em;font-weight:800;letter-spacing:.08em;padding:1px 6px;border-radius:4px;margin-right:8px;vertical-align:.15em;background:var(--ink);color:var(--card)}
+.bi.why{font-size:.92em;margin-top:4px}
+.g-sub{display:block;font-weight:600;font-size:.8em;color:var(--muted)}
+.emo{width:1.5em;height:1.5em;object-fit:contain;vertical-align:-.4em}
+.nick{font-weight:700;white-space:nowrap}
+.opt .lab .nick{font-size:.82em;margin-top:2px}
+.fb-head .nick,.target .nick{font-size:.95em}
+.g-table td:first-child .nick{font-size:.8em;color:var(--ink)}
+.g-tip{border:2px dashed var(--c);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:4px}
+.g-tip strong{color:var(--c)}
+.credit{font-size:.72em;color:var(--muted);align-self:flex-end}
+.mark{margin-left:auto;font-weight:900;font-size:1.25em;padding-left:10px}
+.opt.is-correct .mark{color:var(--ok)}.opt.is-wrong .mark{color:var(--bad)}
+.feedback.bad{border-top-color:var(--bad)}
+#fbSay{align-self:flex-start}
+.whynot{background:var(--bad-bg);border-left:4px solid var(--bad);padding:8px 12px;border-radius:0 8px 8px 0}
+.whynot b{color:var(--bad)}
+.startw{font-size:1.05em}
+.modelline{font-family:var(--display);font-weight:700;font-size:1.25em}
+.rubric{background:var(--card);border-radius:14px;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
+.rubric ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.rubric li{display:flex;align-items:center;gap:10px}
+.rubric .box{flex:none;width:1.6em;height:1.6em;border-radius:6px;border:2px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:.85em}
+.crit{display:flex;align-items:center;gap:10px;background:transparent;border:0;text-align:left;padding:2px 0;font-weight:600}
+.crit.on .box{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.rubric-pts{color:var(--muted);font-weight:600}
+.rubric-pts b{color:var(--ink)}
+.types-res{display:flex;flex-direction:column;gap:10px}
+.trow{display:grid;grid-template-columns:auto minmax(0,1.4fr) minmax(80px,1fr) auto auto;align-items:center;gap:12px}
+.trow .meter{height:12px;background:var(--rule);border-radius:6px;overflow:hidden}
+.trow .meter i{display:block;height:100%}
+.trow .tn{font-weight:800;font-variant-numeric:tabular-nums}
+.good{font-weight:800;color:var(--ok)}
+#tPlus{padding:10px 12px}
+@media (max-width:760px){.trow{grid-template-columns:1fr 1fr}}
+.rubric-tip{color:var(--muted);font-style:italic}
+#sayBtn{align-self:flex-start}
+.ptcards{background:var(--card);border-radius:0 0 12px 12px;padding:0 22px 22px;display:flex;flex-direction:column;gap:12px}
+.ptcard{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"pt ar en" "c c c";gap:6px 14px;align-items:start;background:var(--tint);border-left:5px solid var(--c);border-radius:0 10px 10px 0;padding:14px 16px}
+.ptcard .ptside:first-child{grid-area:pt}.ptcard .ptarrow{grid-area:ar;font-size:1.6em;font-weight:900;color:var(--c);align-self:center}
+.ptcard .ptside:nth-child(3){grid-area:en}.ptcard .ptc{grid-area:c;display:flex;gap:6px;flex-wrap:wrap}
+.ptside{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ptlab{font-size:.7em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ptside b{font-size:1.15em;color:var(--c)}
+.ptt{font-size:.85em;color:var(--muted);font-style:italic}
+.pts{margin-top:4px;font-weight:600}
+.ptc .pill{font-size:.75em;padding:2px 10px}
+@media (max-width:640px){.ptcard{grid-template-columns:1fr;grid-template-areas:"pt" "ar" "en" "c"}.ptcard .ptarrow{transform:rotate(90deg);justify-self:start}}
+.sentence .alt{display:block;font-family:var(--body);font-size:.42em;font-weight:600;color:var(--muted);margin-top:10px}
+.ptalt{font-size:.9em;color:var(--muted);font-style:italic}
+.dictate{background:var(--card);border-radius:12px;padding:10px 16px}
+.turnbadge{background:var(--card);color:var(--ink);border:3px solid var(--linec,var(--red));border-radius:999px;padding:5px 16px;font-weight:800}
+.team.turn{border-color:var(--linec,var(--red));box-shadow:0 0 0 3px var(--linec,var(--red)) inset}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg class="roundel" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="#c8102e" stroke-width="7"/><rect x="0" y="16" width="40" height="8" fill="#fff"/></svg>
+    <div>Conditionals<small>Green Line · Zero to second</small></div>
+  </div>
+  <div class="line" id="line" aria-label="Quiz progress">
+    <div class="fill" id="lineFill" style="width:0"></div>
+    <div class="stops" id="stops"></div>
+  </div>
+  <button class="hbtn" id="gramBtn" type="button">📖 Grammar</button>
+  <button class="hbtn" id="themeBtn" type="button" aria-pressed="false">☾ Dark</button>
+  
+  <button class="hbtn" id="fsBtn" type="button">Full screen</button>
+</header>
+
+<main><div class="stage" id="stage"></div></main>
+
+<footer id="footer" class="hide"><div class="scores" id="scores"></div></footer>
+
+<script>
+const TYPES = {
+  zero:   {label:"Zero",    nick:"The Scientist", icon:"🔬", hint:"facts and habits",       formula:"If + present simple, present simple",              c:"var(--t-zero)"},
+  first:  {label:"First",   nick:"The Promise", icon:"🤞", hint:"real future",            formula:"If + present simple, will + infinitive",            c:"var(--t-first)"},
+  second: {label:"Second",  nick:"The Millionaire · {BEY} The Beyoncé", icon:"💰", hint:"unreal present / future",formula:"If + past simple, would + infinitive",              c:"var(--t-second)"},
+  third:  {label:"Third",   nick:"The Spilt Milk · The Regret", icon:"🥛", hint:"unreal past",            formula:"If + past perfect, would have + past participle",  c:"var(--t-third)"},
+  mixa:   {label:"Mixed A", nick:"The Butterfly Effect", icon:"🦋", hint:"past → present",         formula:"If + past perfect, would + infinitive",             c:"var(--t-mixa)"},
+  mixb:   {label:"Mixed B", nick:"Born This Way", icon:"🧬", hint:"present → past",         formula:"If + past simple, would have + past participle",   c:"var(--t-mixb)"}
+};
+const TYPE_KEYS = Object.keys(TYPES);
+const BEY_IMG = '<img class="emo" alt="Beyoncé emoji" src="data:image/webp;base64,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">';
+const fillIcons = h => h.split("{BEY}").join(BEY_IMG);
+const nickHTML = k => `<span class="nick">${fillIcons(TYPES[k].icon)} ${fillIcons(TYPES[k].nick)}</span>`;
+
+const TASKS = {
+  identify: {title:"Which conditional?", label:"Identify", kind:"classify", time:45, lead:"Which conditional is it?",
+    how:"Teams take turns: the screen shows whose turn it is. That team agrees on an answer, and one member gives it and explains it in English. A correct answer earns 1 point automatically.",
+    soloHow:"Read each sentence and choose the conditional. You'll see the answer and an explanation straight away."},
+  gap: {title:"Fill the gap", label:"Fill the gap", kind:"mcq", time:45, lead:"Choose the missing words.",
+    how:"Teams take turns. The team whose turn it is agrees on A, B, C or D, and one member explains why in English. A correct answer earns 1 point automatically.",
+    soloHow:"Choose the missing words: A, B, C or D. Read the explanation after each answer, even when you're right."},
+  transform: {title:"Join the sentences", label:"Join", kind:"transform", time:60, lead:"Rewrite the situation as one conditional sentence.",
+    how:"Read the situation and agree on one conditional sentence. Start with the words given. The team whose turn it is dictates its sentence to the teacher and explains the verb forms; a correct sentence earns 1 point automatically. The other teams write theirs in their notebooks.",
+    soloHow:"Read the situation and type one conditional sentence. Start with the words given. When you finish it with a full stop or press Enter, you'll see straight away if it's right. You have two tries."},
+  translate: {title:"Translate or correct", label:"Translate", kind:"mcq", time:60,
+    how:"Teams take turns. Before answering, one member of the team whose turn it is explains to the others why the other options are wrong, in English or in any language they share. A correct answer earns 1 point automatically.",
+    soloHow:"Choose the best translation or the right correction. Before you click, say aloud why the other options are wrong."},
+  write: {title:"Write your own", label:"Write", kind:"produce", time:120,
+    how:"Agree on your own sentence with the conditional shown. The team whose turn it is dictates its sentence to the teacher and explains the verb forms; the teacher ticks the criteria on the screen and the points (up to 2) are added automatically. The other teams write theirs in their notebooks. The last task is a question for another team, who must answer it in a full sentence.",
+    soloHow:"Write your own sentence with the conditional shown. Then compare it with a model and check it against the criteria: up to 2 points."}
+};
+const st = (task, items) => ({...TASKS[task], task, station:TASKS[task].label, short:TASKS[task].label, items});
+
+/* Shared items */
+const I = {
+  londonZero: {text:"If my aunt goes to London, she always buys me a present.", answer:"zero",
+    why:"Present simple in both clauses, and always: it happens every time she goes. It's a habit."},
+  londonFirst: {text:"If we go to London next week, we will buy you a present.", answer:"first",
+    why:"A real plan: going to London next week is possible, so the promise is real. If + present simple, will + infinitive."},
+  londonSecond: {text:"If Jack went to London, he would buy Jill a present.", answer:"second",
+    why:"An imaginary situation: Jack isn't going to London. If + past simple, would + infinitive."},
+  londonThird: {text:"If my uncle had gone to London, he would have bought me a present.", answer:"third",
+    why:"An imaginary past: he didn't go to London, so there was no present. It's too late to change it."},
+  heatIce: (level) => ({text:"If you ___ ice, it melts.", type:"zero",
+    options: level===9 ? ["heat","heated","will heat","would heat"] : ["heat","heated","will heat","had heated"], answer:0,
+    why:"A scientific fact, always true: present simple in both clauses.",
+    whyNot:[null,"Heated is past simple. Facts that are always true use the present simple.",
+      "We don't normally use will in the if-clause, and facts use the present simple.",
+      level===9 ? "We don't normally use would in the if-clause." : "Had heated is past perfect, used for an imaginary past (third conditional)."]}),
+  whatWould: (level) => ({text:"What ___ your uncle buy you if he went to London?", type:"second",
+    options: level===9 ? ["would","will","does","did"] : ["would","will","does","would have"], answer:0,
+    why:"Went shows an imaginary situation, so the question uses would + subject + infinitive.",
+    whyNot:[null,"Will goes with a real situation (if he goes). With went, use would.",
+      "Does is for facts and habits, but went shows an imaginary situation.",
+      level===9 ? "Did + buy asks about the past, but this is an imaginary situation." : "Would have is for an imaginary past (third conditional), but went shows an imaginary present."]}),
+  fosse: (level) => ({src:"Portuguese", lead:"Which is the best English version?", type:"second",
+    text:"Se (eu) fosse a Londres, comprava-te um presente.", alt:"More formal Portuguese: …comprar-te-ia um presente.",
+    options:["If I went to London, I would buy you a present.","If I went to London, I bought you a present.","If I would go to London, I would buy you a present.",
+      level===9 ? "If I go to London, I would buy you a present." : "If I had gone to London, I would have bought you a present."],
+    answer:0,
+    why:"Se (eu) fosse becomes if I went. Comprava here means would buy, not a past action.",
+    whyNot:[null,"Comprava here has a conditional meaning: would buy, not bought.",
+      "We don't normally use would in the if-clause: se (eu) fosse = if I went.",
+      level===9 ? "Go + would doesn't match: an imaginary situation needs went." : "This is the third conditional: se (eu) tivesse ido… ter-te-ia comprado."]})
+};
+
+const LINES = [
+ {id:"daydream", name:"Green Line", short:"Zero to second", color:"var(--t-first)", ink:"var(--t-first)", year:"Suggested: Year 9",
+  sub:"Zero, first and second conditionals", types:["zero","first","second"],
+  rounds:[
+   st("identify",[
+     I.londonZero,
+     {text:"If it rains tomorrow, we'll visit the British Museum.", answer:"first",
+      why:"A real possibility tomorrow: if + present simple, will + infinitive."},
+     {text:"If Jack and Jill won the lottery, they'd travel around the world.", answer:"second",
+      why:"Winning the lottery is unlikely: if + past simple, would + infinitive. It's an imaginary situation."},
+     {text:"Would you buy me a present if you went to London?", answer:"second",
+      why:"A question about an imaginary situation: past simple (went) in the if-clause, would in the question."}
+   ]),
+   st("gap",[
+     {text:"If they ___ to London next week, they'll buy you a present.", type:"first",
+      options:["go","will go","went","would go"], answer:0,
+      why:"A real plan: if + present simple. In this kind of sentence, we don't use will in the if-clause.",
+      whyNot:[null,"We don't normally use will in the if-clause: If they go…, they'll…",
+        "Went is for imaginary situations (second conditional), but this plan is real: next week.",
+        "We don't normally use would in the if-clause."]},
+     I.heatIce(9),
+     I.whatWould(9),
+     {text:"If I ___ you, I would take the Tube. It's much faster.", type:"second",
+      options:["were","am","will be","would be"], answer:0,
+      why:"Advice: I'm not you, so the situation is imaginary. If I were you is a fixed phrase.",
+      whyNot:[null,"Am is real, but I can't be you: the situation is imaginary.",
+        "We don't normally use will in the if-clause.","We don't normally use would in the if-clause."]}
+   ]),
+   st("transform",[
+     {type:"first", given:"It might rain tomorrow. Then we'll stay at home.", start:"If it",
+      ifRe:"\\bif it rains\\b", resRe:"\\b(we|i) (will|are going to|am going to) stay\\b",
+      model:"If it rains tomorrow, we'll stay at home.",
+      why:"A real possibility: if + present simple (rains), will + infinitive."},
+     {type:"zero", given:"Every time my dad drinks coffee at night, he can't sleep.", start:"If my dad",
+      ifRe:"\\bif (my dad|he) drinks (a )?coffee\\b", resRe:"\\bhe (cannot|does not) (sleep|fall asleep)\\b|\\bhe never (sleeps|falls asleep)\\b|\\bhe stays awake\\b",
+      model:"If my dad drinks coffee at night, he can't sleep.",
+      why:"Something that always happens: present simple in both clauses."},
+     {type:"second", given:"Jill doesn't have a car, so she can't drive you home.", start:"If Jill",
+      ifRe:"\\bif (jill|she) had a car\\b", resRe:"\\bshe (would|could) (drive|take|give)\\b",
+      model:"If Jill had a car, she could drive you home.",
+      why:"An imaginary present: if + past simple (had), would or could + infinitive."},
+     {type:"second", given:"I'm not you. My advice: study for the test.", start:"If I",
+      ifRe:"\\bif i were you\\b", resRe:"\\bi (would|should) (study|revise|start)\\b", fixedWere:true,
+      model:"If I were you, I'd study for the test.",
+      why:"Advice with an imaginary situation: If I were you, I'd… This is a fixed phrase with were."}
+   ]),
+   st("translate",[
+     {src:"Portuguese", lead:"Which is the best English version?", type:"first",
+      text:"Se (eu) for a Londres, comprar-te-ei um presente.", alt:"Everyday Portuguese: …compro-te / vou comprar-te um presente.",
+      options:["If I go to London, I'll buy you a present.","If I will go to London, I'll buy you a present.","If I went to London, I'll buy you a present.","If I go to London, I bought you a present."],
+      answer:0,
+      why:"Se (eu) for (futuro do conjuntivo) becomes if I go: present simple after if. Comprar-te-ei (futuro) becomes I'll buy: will in the result.",
+      whyNot:[null,"In this kind of sentence, we don't use will in the if-clause, even if Portuguese uses a future form.",
+        "Went + will mixes two conditionals. A real plan needs if I go.",
+        "Bought is past, but comprar-te-ei is about the future: I'll buy."]},
+     I.fosse(9),
+     {src:"Your friend", lead:"Your friend wrote this sentence. Which correction is right?", type:"first",
+      text:"If it will rain tomorrow, we will stay at home.",
+      options:["If it rains tomorrow, we will stay at home.","If it rained tomorrow, we will stay at home.","If it would rain tomorrow, we stay at home.","If it will rain tomorrow, we stay at home."],
+      answer:0,
+      why:"A real possibility tomorrow: if + present simple (rains), will in the result.",
+      whyNot:[null,"Rained + will mixes two conditionals.","Would doesn't belong in this if-clause, and the result needs will.",
+        "There is still will in the if-clause."]},
+     {src:"Your friend", lead:"Your friend wrote this sentence. Which correction is right?", type:"second",
+      text:"If my brother would have a car, he would drive you home.",
+      options:["If my brother had a car, he would drive you home.","If my brother has a car, he would drive you home.","If my brother had a car, he will drive you home.","If my brother would have a car, he drove you home."],
+      answer:0,
+      why:"An imaginary present: if + past simple (had), would + infinitive in the result.",
+      whyNot:[null,"Has + would doesn't match: an imaginary situation needs had.",
+        "Had + will mixes two conditionals. An imaginary situation needs would.",
+        "Would still appears in the if-clause, and drove is a past action."]}
+   ]),
+   st("write",[
+     {type:"zero",   prompt:"Something you always do when you feel stressed.", model:["If I feel stressed, I listen to music."]},
+     {type:"first",  prompt:"Make a promise to a friend about your next trip.", model:["If I go to Porto this summer, I'll send you a postcard."]},
+     {type:"second", prompt:"Imagine that you, someone you know or a famous person lived in London. What would life be like?", model:["If I lived in London, I would take a red bus to school every day."]},
+     {type:"second", prompt:"Write a question for another team. They must answer it in a full sentence!",
+      model:["Q: What would you buy me if you went to London?","A: If we went to London, we would buy you a Big Ben fridge magnet."]}
+   ])
+  ]},
+
+ {id:"if", name:"Red Line", short:"Zero to third", color:"var(--red)", ink:"var(--red)", year:"Suggested: Years 10–11",
+  sub:"Zero, first, second and third conditionals", types:["zero","first","second","third"],
+  rounds:[
+   st("identify",[I.londonSecond, I.londonFirst, I.londonThird, I.londonZero]),
+   st("gap",[
+     I.heatIce(10),
+     I.whatWould(10),
+     {text:"If she ___ the train, she would have arrived on time.", type:"third",
+      options:["hadn't missed","didn't miss","doesn't miss","wouldn't miss"], answer:0,
+      why:"An imaginary past: if + past perfect. She missed the train, so she arrived late.",
+      whyNot:[null,"Didn't miss is past simple (second conditional). Would have arrived needs the past perfect.",
+        "The present simple is for real situations, but this is an imaginary past.",
+        "We don't normally use would in the if-clause."]},
+     {text:"If Jack had studied harder, he ___ the exam.", type:"third",
+      options:["would have passed","would pass","will pass","passed"], answer:0,
+      why:"An imaginary past: had studied in the if-clause, would have + past participle in the result.",
+      whyNot:[null,"Would pass is for an imaginary present, but the exam is in the past.",
+        "Will is for real future situations.",
+        "Passed states a fact, but this is an imaginary past."]}
+   ]),
+   st("transform",[
+     {type:"third", given:"Jack and Jill didn't study. They failed the test.", start:"If Jack and Jill had",
+      ifRe:"\\bif (jack and jill|they) had studied\\b", resRe:"\\bthey would (not have failed|have passed|have done)\\b",
+      model:"If Jack and Jill had studied, they wouldn't have failed the test.",
+      why:"An imaginary past: if + past perfect (had studied), would have + past participle."},
+     {type:"third", given:"She missed the bus, so she was late for school.", start:"If she",
+      ifRe:"\\bif she had (not missed|caught|taken|got) the bus\\b",
+      resRe:"\\bshe would (not have been late|have been on time|have arrived on time|not have arrived late|have got to school on time)\\b",
+      model:"If she hadn't missed the bus, she wouldn't have been late for school.",
+      why:"An imaginary past: if + past perfect (hadn't missed), would have + past participle (been)."},
+     {type:"second", given:"My cousins don't live in London, so they don't see Big Ben every day.", start:"If my cousins",
+      ifRe:"\\bif (my cousins|they) lived in london\\b", resRe:"\\bthey (would|could) see\\b",
+      model:"If my cousins lived in London, they would see Big Ben every day.",
+      why:"An imaginary present: if + past simple (lived), would + infinitive."},
+     {type:"first", given:"Maybe we'll go to London next summer. Then we'll visit the British Museum.", start:"If we",
+      ifRe:"\\bif we go to london\\b", resRe:"\\bwe (will|are going to) (visit|go to|see)\\b",
+      model:"If we go to London next summer, we'll visit the British Museum.",
+      why:"A real possibility: if + present simple (go), will + infinitive."}
+   ]),
+   st("translate",[
+     I.fosse(10),
+     {src:"Portuguese", lead:"Which is the best English version?", type:"third",
+      text:"Se ela tivesse ido a Londres, ter-te-ia comprado um presente.", alt:"Everyday Portuguese: …tinha-te comprado um presente.",
+      options:["If she had gone to London, she would have bought you a present.","If she would have gone to London, she would have bought you a present.","If she had went to London, she would have bought you a present.","If she went to London, she would buy you a present."],
+      answer:0,
+      why:"Tivesse ido becomes had gone; ter-te-ia comprado becomes would have bought.",
+      whyNot:[null,"We don't use would have in the if-clause: tivesse ido = had gone.",
+        "The past participle of go is gone, not went.",
+        "This is the second conditional: se ela fosse… comprava."]},
+     {src:"Your friend", lead:"Your friend wrote this sentence. Which correction is right?", type:"third",
+      text:"If she would have known, she would have come.",
+      options:["If she had known, she would have come.","If she knew, she will come.","If she has known, she would come.","If she would know, she would have come."],
+      answer:0,
+      why:"An imaginary past: if + past perfect (had known). Would have belongs in the result.",
+      whyNot:[null,"Knew + will mixes two conditionals, and the situation is in the past.",
+        "Has known is present perfect. The condition needs the past perfect: had known.",
+        "We don't normally use would in the if-clause."]},
+     {src:"Your friend", lead:"Your friend wrote this sentence. Which correction is right?", type:"second",
+      text:"If my uncle would live in London, he would see Big Ben every day.",
+      options:["If my uncle lived in London, he would see Big Ben every day.","If my uncle lives in London, he would see Big Ben every day.","If my uncle lived in London, he will see Big Ben every day.","If my uncle had lived in London, he would see Big Ben yesterday."],
+      answer:0,
+      why:"An imaginary present: if + past simple (lived), would + infinitive in the result.",
+      whyNot:[null,"Lives + would doesn't match: an imaginary situation needs lived.",
+        "Lived + will mixes two conditionals.",
+        "Every day is a present habit, not yesterday, and the condition is about now."]}
+   ]),
+   st("write",[
+     {type:"first",  prompt:"Make a promise to a friend about your next trip.", model:["If I go to Porto this summer, I'll send you a postcard."]},
+     {type:"second", prompt:"Imagine that you, someone you know or a famous person lived in London. What would life be like?", model:["If my favourite singer lived in London, she would give a concert every week."]},
+     {type:"third",  prompt:"Think of a mistake that you, someone you know or a famous person made.", model:["If I had set an alarm, I wouldn't have missed the bus."]},
+     {type:"third",  prompt:"Write a question for another team. They must answer it in a full sentence!",
+      model:["Q: What would you have done if you had missed the last train?","A: If we had missed the last train, we would have taken a taxi."]}
+   ])
+  ]},
+
+ {id:"mixed", name:"Yellow Line", short:"Mixed conditionals", color:"var(--yellow)", ink:"var(--yellow-ink)", year:"Suggested: Year 11",
+  sub:"Mixed conditionals A and B", types:["second","third","mixa","mixb"],
+  rounds:[
+   st("identify",[
+     {text:"If Jill had gone to London last month, she would have a present for you now.", answer:"mixa",
+      why:"Past condition (she didn't go last month) with a present result (she has no present for you now)."},
+     {text:"If I were a man, they would have given me the job.", answer:"mixb",
+      why:"Present condition (I am not a man, then or now) with a past result (they didn't give me the job)."},
+     {text:"If we had gone to London, we would have bought you a present.", answer:"third",
+      why:"Not mixed! Both halves are in the past: we didn't go, and we didn't buy a present."},
+     {text:"If Jack hadn't missed the flight, he wouldn't be in Lisbon now.", answer:"mixa",
+      why:"Past condition (he missed the flight) with a present result (he's in Lisbon now)."}
+   ]),
+   st("gap",[
+     {text:"If they had saved more money last year, they ___ in London now.", type:"mixa",
+      options:["would be","will be","would have been","are"], answer:0,
+      why:"Past condition (last year), present result (now): would + infinitive.",
+      whyNot:[null,"Will is for real future situations.",
+        "Would have been is a past result, but now shows a present result.",
+        "Are states a fact, but this is an imaginary present."]},
+     {text:"Jack is very shy. If he ___ so shy, he would have spoken to Jill at the party yesterday.", type:"mixb",
+      options:["weren't","isn't","wouldn't be","won't be"], answer:0,
+      why:"Being shy is always true (present), and it changed a past event. Weren't is the preferred form for every person.",
+      whyNot:[null,"Isn't is real, but the situation is imaginary: weren't.",
+        "We don't normally use would in the if-clause.","We don't normally use will in the if-clause."]},
+     {text:"If he had paid attention in English lessons last year, he ___ the tourists now.", type:"mixa",
+      options:["would understand","would have understood","will understand","understands"], answer:0,
+      why:"Past condition (last year) with a present result (now): would + infinitive.",
+      whyNot:[null,"Now shows a present result, so use would + infinitive.",
+        "Will is for real future situations.",
+        "Understands states a fact, but the situation is imaginary."]},
+     {text:"If she ___ German, she would have understood the guide in Berlin yesterday.", type:"mixb",
+      options:["spoke","speaks","would speak","will speak"], answer:0,
+      why:"Speaking German is a permanent ability (present), and the result is in the past: if + past simple, would have + past participle.",
+      whyNot:[null,"The present simple is for real situations. She doesn't speak German, so use the past simple: spoke.",
+        "We don't normally use would in the if-clause.","We don't normally use will in the if-clause."]}
+   ]),
+   st("transform",[
+     {type:"mixa", given:"My parents didn't save money last year. That's why they aren't in London now.", start:"If my parents had",
+      ifRe:"\\bif (my parents|they) had saved( some| more| enough)? money\\b", resRe:"\\bthey would be in london\\b",
+      model:"If my parents had saved money last year, they would be in London now.",
+      why:"Past condition (had saved), present result (would be… now)."},
+     {type:"mixb", given:"Jill isn't good at maths, so she didn't pass the test yesterday.", start:"If Jill",
+      ifRe:"\\bif (jill|she) (were|was) good at maths\\b", resRe:"\\bshe would have passed\\b",
+      model:"If Jill were good at maths, she would have passed the test yesterday.",
+      why:"Permanent present condition (were), past result (would have passed)."},
+     {type:"mixb", given:"My uncle doesn't speak German, so he didn't understand the guide in Berlin.", start:"If my uncle",
+      ifRe:"\\bif (my uncle|he) (spoke|knew|could speak|understood) german\\b", resRe:"\\bhe would have understood\\b",
+      model:"If my uncle spoke German, he would have understood the guide in Berlin.",
+      why:"Permanent present condition (spoke), past result (would have understood)."},
+     {type:"mixa", given:"We missed the flight. Now we're still in Lisbon.", start:"If we",
+      ifRe:"\\bif we had (not missed|caught|taken) the flight\\b", resRe:"\\bwe would not (still )?be\\b|\\bwe would be (in|at) (?!lisbon)\\w+",
+      okRe:"^if we had not missed the flight we would not (still )?be\\b|^if we had (caught|taken) the flight we would (not (still )?be in lisbon|be (in|at) (?!lisbon)\\w+)",
+      model:"If we hadn't missed the flight, we wouldn't be in Lisbon now.",
+      why:"Past condition (hadn't missed), present result (wouldn't be… now)."}
+   ]),
+   st("translate",[
+     {src:"English", lead:"Which is the best Portuguese version?", type:"mixa",
+      text:"If she had gone to London last month, she would have a present for you now.",
+      options:["Se ela tivesse ido a Londres no mês passado, agora tinha um presente para ti.","Se ela fosse a Londres, agora tinha um presente para ti.","Se ela tivesse ido a Londres no mês passado, ter-te-ia comprado um presente.","Se ela for a Londres, tem um presente para ti."],
+      answer:0,
+      why:"The condition stays in the past (tivesse ido), but the result is about now (agora tinha).",
+      whyNot:[null,"Se ela fosse is a present condition, but last month is past.",
+        "This is the third conditional: the result is in the past, so it loses the now.",
+        "This is a real future condition (first conditional)."]},
+     {src:"Portuguese", lead:"Which is the best English version?", type:"mixb",
+      text:"Se (eu) fosse homem, ter-me-iam dado o emprego.", alt:"Everyday Portuguese: …tinham-me dado o emprego.",
+      options:["If I were a man, they would have given me the job.","If I had been a man, they would give me the job.","If I am a man, they will give me the job.","If I would be a man, they would have given me the job."],
+      answer:0,
+      why:"Ser homem is a permanent present fact (fosse = were), but the job was in the past (ter-me-iam dado = would have given).",
+      whyNot:[null,"This is the other way round: a past condition with a present result.",
+        "This is a real situation (first conditional).",
+        "We don't normally use would in the if-clause."]},
+     {src:"Your friend", lead:"Your friend wrote this sentence. Which correction is right?", type:"mixb",
+      text:"If my sister wasn't so shy, she would speak to him at the party yesterday.",
+      options:["If my sister weren't so shy, she would have spoken to him at the party yesterday.","If my sister hadn't been so shy, she would speak to him at the party yesterday.","If my sister weren't so shy, she will speak to him at the party yesterday.","If my sister wouldn't be so shy, she would have spoken to him at the party yesterday."],
+      answer:0,
+      why:"The real mistake is the result: the party was yesterday, so it needs would have + past participle. Weren't is the preferred form in writing.",
+      whyNot:[null,"Yesterday is past: the result needs would have spoken.",
+        "Will is for real future situations, not yesterday.",
+        "We don't normally use would in the if-clause."]},
+     {src:"Your friend", lead:"Your friend wrote this sentence. Which correction is right?", type:"mixa",
+      text:"If Jack and Jill had saved more money last year, they would have been in London now.",
+      options:["If Jack and Jill had saved more money last year, they would be in London now.","If Jack and Jill saved more money last year, they would be in London now.","If Jack and Jill had saved more money last year, they will be in London now.","If Jack and Jill would have saved more money last year, they would be in London now."],
+      answer:0,
+      why:"Now shows a present result: would + infinitive (would be). The condition stays in the past perfect.",
+      whyNot:[null,"Saved is past simple; last year needs the past perfect: had saved.",
+        "Will is for real future situations.",
+        "We don't use would have in the if-clause."]}
+   ]),
+   st("write",[
+     {type:"mixa", prompt:"A past decision that changed your life now.", model:["If I hadn't started learning English, I wouldn't understand this quiz now."]},
+     {type:"mixb", prompt:"Something always true about you that changed a past event.", model:["If I weren't afraid of heights, I would have gone on the London Eye."]},
+     {type:"mixb", prompt:"A skill that you, someone you know or a famous person doesn't have, which caused a problem in the past.", model:["If I spoke French, I would have understood the waiter in Paris."]},
+     {type:"mixa", prompt:"Write a question for another team. They must answer it in a full sentence!",
+      model:["Q: Would you be in London now if you had saved more money?","A: Yes! If we had saved more money, we would be in London now."]}
+   ])
+  ]}
+];
+let ROUNDS = LINES[0].rounds;
+
+
+
+/* ── Grammar content (explanations in English + PT-PT, examples in English) ───────────── */
+const FL = {aff:["Affirmative","Afirmativa"], neg:["Negative","Negativa"], int:["Question","Interrogativa"]};
+const GRAMMAR = [
+  {id:"base", label:"Basics", c:"var(--ink)",
+   title:{en:"How a conditional sentence works"},
+   note:{en:"A conditional sentence has two clauses: the <strong>condition</strong> (the clause with <em>if</em>) and the <strong>result</strong> (the main clause). You can swap them without changing the meaning. When the <em>if</em>-clause comes first, use a comma; when it comes second, don't."},
+   forms:[
+     {label:["Condition first","Condição primeiro"], form:"If + condition, result", ex:"If I go to London, I'll buy you a present."},
+     {label:["Result first","Resultado primeiro"], form:"result + if + condition", ex:"I'll buy you a present if I go to London."},
+     {label:["Main rule","Regra principal"], form:"normally no will / would in the if-clause", ex:"If I go… ✓   If I will go… ✗"}],
+   rule:{en:"<strong>How to choose:</strong> ask two questions. 1) <em>When?</em> Always, in the future, in the present or in the past? 2) <em>Real or imaginary?</em> The answers tell you which conditional to use. See the <em>Summary</em> table at the end of this page.<br><strong>Infinitive</strong> here means the base form of the verb without <em>to</em>: <em>go, buy, be</em>.<br><strong>Exceptions:</strong> <em>will</em> or <em>would</em> can appear in the if-clause to be polite or to show willingness: <em>If you'll wait here, I'll get the manager.</em> <em>If you would follow me, please.</em><br><strong>Nicknames</strong> such as The Scientist or The Promise are memory hooks, not complete definitions."}},
+
+  {id:"zero", label:"Zero", c:"var(--t-zero)",
+   tip:{en:"<strong>Nickname: The Scientist 🔬</strong> Like a scientist, the Zero Conditional states things that are always true: facts, general truths and habits."},
+   title:{en:"Zero Conditional: facts and habits"},
+   note:{en:"The <strong>Zero Conditional</strong> is used for facts, general truths and habits: <em>every time</em> the condition happens, the result happens too. You can usually replace <em>if</em> with <em>when</em> or <em>whenever</em> without changing the meaning."},
+   forms:[
+     {k:"aff", form:"If + present simple, present simple", ex:"If I go to London, I always buy you a present."},
+     {k:"neg", form:"If + present simple, don't / doesn't + infinitive", ex:"If I don't sleep well, I don't concentrate."},
+     {k:"int", form:"What happens if + present simple?", ex:"What happens if you heat ice?"}],
+   examples:[
+     {tag:"aff", label:"habit · hábito", en:"If I <b>go</b> to London, I always <b>buy</b> you a present."},
+     {tag:"neg", label:"scientific fact · facto científico", en:"If plants <b>don't get</b> water, they <b>die</b>."},
+     {tag:"int", label:"general truth · verdade geral", en:"What <b>happens</b> if you <b>mix</b> blue and yellow?"}],
+   rule:{en:"<strong>Key words:</strong> <em>when, whenever, every time, always, usually</em>. If you can say <em>sempre que</em> in Portuguese, it's very probably a Zero Conditional."},
+   error:{wrong:"If you heat ice, it <em>melted</em>.", right:"If you heat ice, it <strong>melts</strong>.",
+          why:{en:"Facts and habits: present simple in both clauses."}}},
+
+  {id:"first", label:"First", c:"var(--t-first)",
+   tip:{en:"<strong>Nickname: The Promise 🤞</strong> Real plans, promises, warnings and predictions about the future. Song tip: Chicago, <em>If You Leave Me Now</em>."},
+   title:{en:"First Conditional: real, likely future"},
+   note:{en:"The <strong>First Conditional</strong> is used for real, possible situations in the future, in other words, things that will probably happen. It's also used for promises, warnings and threats."},
+   forms:[
+     {k:"aff", form:"If + present simple, will + infinitive", ex:"If I go to London, I will buy you a present."},
+     {k:"neg", form:"If + present simple, won't + infinitive", ex:"If it rains, we won't go to the park."},
+     {k:"int", form:"What will + subject + infinitive + if…?", ex:"What will you buy me if you go to London?"}],
+   examples:[
+     {tag:"aff", label:"promise · promessa", en:"If I <b>go</b> to London, I<b>'ll buy</b> you a present."},
+     {tag:"neg", label:"warning · aviso", en:"If you <b>don't hurry</b>, you<b>'ll miss</b> the train."},
+     {tag:"int", label:"plan · plano", en:"What <b>will</b> you <b>do</b> if it <b>rains</b> tomorrow?"}],
+   rule:{en:"<strong>Watch out:</strong> after <em>if</em>, use the <em>present simple</em>, even when you're talking about the future. Portuguese uses the future subjunctive (<em>se (eu) for</em>), but in English we don't say <em>if I will go</em> in this kind of sentence. The same rule applies after <em>when</em> and <em>as soon as</em>: <em>I'll call you when I arrive.</em><br><strong>Key word:</strong> <em>unless</em> = if not: <em>Unless you hurry, you'll miss the train.</em><br><strong>Variations:</strong> the result can also be an imperative (<em>If you see her, tell her.</em>), <em>going to</em> (<em>If it rains, we're going to stay in.</em>) or a modal verb (<em>If you hurry, you can catch the bus.</em> <em>If it rains, we might stay in.</em>)."},
+   error:{wrong:"If I <em>will go</em> to London, I will buy you a present.", right:"If I <strong>go</strong> to London, I will buy you a present.",
+          why:{en:"In real conditions about the future, we don't use <em>will</em> in the <em>if</em>-clause."}}},
+
+  {id:"second", label:"Second", c:"var(--t-second)",
+   tip:{en:"<strong>Nicknames: The Millionaire 💰 and The Beyoncé {BEY}</strong> Dream like a millionaire: <em>If I won the lottery, I would travel the world.</em> Or think of Beyoncé, <em>If I Were a Boy</em>, and U2, <em>Bad</em>: <em>If I could, I would</em>. They all imagine a situation that isn't real."},
+   title:{en:"Second Conditional: imaginary present or future"},
+   note:{en:"The <strong>Second Conditional</strong> is used for imaginary, unlikely or impossible situations in the present or future. Here the <em>past simple</em> doesn't mean past time: it shows that the situation isn't real. It's also used to give advice: <em>If I were you…</em>"},
+   forms:[
+     {k:"aff", form:"If + past simple, would + infinitive", ex:"If I went to London, I would buy you a present."},
+     {k:"neg", form:"If + past simple, wouldn't + infinitive", ex:"If I lived in London, I wouldn't need a car."},
+     {k:"int", form:"Would + subject + infinitive + if + past simple?", ex:"Would you buy me a present if you went to London?"}],
+   examples:[
+     {tag:"aff", label:"imaginary situation · situação imaginária", en:"If I <b>won</b> the lottery, I<b>'d travel</b> around the world."},
+     {tag:"neg", label:"unreal situation · situação irreal", en:"If she <b>didn't live</b> so far away, we <b>would see</b> each other more often."},
+     {tag:"int", label:"hypothesis · hipótese", en:"What <b>would</b> you <b>do</b> if you <b>were</b> invisible?"}],
+   rule:{en:"<strong>Were:</strong> in writing and in exams, use <em>were</em> for every person: <em>If she were here…</em> In informal speech you will also hear <em>was</em>, but <em>If I were you</em> is a fixed phrase. <em>Could</em> and <em>might</em> can replace <em>would</em>: <em>If I had more money, I could buy a car.</em>"},
+   error:{wrong:"If I <em>would go</em> to London, I would buy you a present.", right:"If I <strong>went</strong> to London, I would buy you a present.",
+          why:{en:"Portuguese says <em>se (eu) fosse</em>; in English the <em>if</em>-clause takes the <em>past simple</em>, not <em>would</em>."}}},
+
+  {id:"third", label:"Third", c:"var(--t-third)",
+   tip:{en:"<strong>Nicknames: The Spilt Milk 🥛 and The Regret</strong> It's no use crying over spilt milk: it already happened and can't be changed. <em>If I had studied, I would have passed.</em>"},
+   title:{en:"Third Conditional: imaginary past"},
+   note:{en:"The <strong>Third Conditional</strong> is used to talk about something that <em>didn't happen</em> in the past and the results that, because of that, didn't happen either. It often expresses regret or criticism. The situation can't be changed any more."},
+   forms:[
+     {k:"aff", form:"If + past perfect, would have + past participle", ex:"If I had gone to London, I would have bought you a present."},
+     {k:"neg", form:"If + hadn't + past participle, wouldn't have + past participle", ex:"If she hadn't missed the train, she wouldn't have arrived late."},
+     {k:"int", form:"Would + subject + have + past participle + if + past perfect?", ex:"Would you have come if I had invited you?"}],
+   examples:[
+     {tag:"aff", label:"missed opportunity · oportunidade perdida", en:"If I <b>had gone</b> to London, I <b>would have bought</b> you a present."},
+     {tag:"neg", label:"regret · arrependimento", en:"If we <b>hadn't taken</b> the wrong bus, we <b>wouldn't have got</b> lost."},
+     {tag:"int", label:"imagined past · passado imaginado", en:"<b>Would</b> you <b>have come</b> if I <b>had invited</b> you?"}],
+   rule:{en:"<strong>Contractions:</strong> in speech, <em>would have</em> becomes <em>would've</em>, and <em>'d</em> can mean <em>had</em> or <em>would</em>: <em>If I'd known (had), I'd have come (would).</em> Never write <em>would of</em>!"},
+   error:{wrong:"If I <em>would have known</em>, I would have come.", right:"If I <strong>had known</strong>, I would have come.",
+          why:{en:"<em>Would have</em> belongs in the result. The condition takes the <em>past perfect</em>."}}},
+
+  {id:"mixa", label:"Mixed A", c:"var(--t-mixa)",
+   tip:{en:"<strong>Nickname: The Butterfly Effect 🦋</strong> One small change in the past would change your life now."},
+   title:{en:"Mixed Conditional A: past → present"},
+   note:{en:"<strong>Mixed Conditional A</strong> combines a condition in the <em>past</em> with a result in the <em>present</em>: something that didn't happen in the past has consequences now. Words like <em>now</em>, <em>today</em> or <em>still</em> in the result are a good clue."},
+   forms:[
+     {k:"aff", form:"If + past perfect, would + infinitive", ex:"If I had gone to London last month, I would have a present for you now."},
+     {k:"neg", form:"If + hadn't + past participle, wouldn't + infinitive", ex:"If I hadn't missed the flight, I wouldn't be in Lisbon now."},
+     {k:"int", form:"Would + subject + infinitive + if + past perfect?", ex:"Would you be happier now if you had chosen another school?"}],
+   examples:[
+     {tag:"aff", label:"result now · consequência agora", en:"If I <b>had saved</b> more money last year, I <b>would be</b> in London now."},
+     {tag:"neg", label:"past decision · decisão passada", en:"If I <b>hadn't started</b> learning English, I <b>wouldn't understand</b> this song."},
+     {tag:"int", label:"hypothesis · hipótese", en:"<b>Would</b> you <b>speak</b> better English now if you <b>had lived</b> in London as a child?"}],
+   rule:{en:"<strong>Clues:</strong> the condition refers to a past time (<em>last year, yesterday, as a child</em>) and the result refers to the present (<em>now, today, still</em>). Compare: <em>If I had gone to London, I would have bought you a present</em> (Third: past result) and <em>If I had gone to London last month, I would have a present for you now</em> (Mixed A: present result)."},
+   error:{wrong:"If I had saved more money last year, I <em>would have been</em> in London now.", right:"If I had saved more money last year, I <strong>would be</strong> in London now.",
+          why:{en:"<em>Now</em> shows a present result: <em>would</em> + infinitive."}}},
+
+  {id:"mixb", label:"Mixed B", c:"var(--t-mixb)",
+   tip:{en:"<strong>Nickname: Born This Way 🧬</strong> Who you are (always true) changed what happened (in the past). Song tip: Lady Gaga, <em>Born This Way</em>. Careful: <em>If I were a man, they would have given me the job</em> starts like The Beyoncé, but the result is in the past!"},
+   title:{en:"Mixed Conditional B: present → past"},
+   note:{en:"<strong>Mixed Conditional B</strong> combines a condition in the <em>present</em>, usually a characteristic or situation that is always true, with a result in the <em>past</em>: because of the way things are, something didn't happen."},
+   forms:[
+     {k:"aff", form:"If + past simple, would have + past participle", ex:"If I were a man, they would have given me the job."},
+     {k:"neg", form:"If + past simple (negative), would have + past participle", ex:"If I weren't so shy, I would have spoken to him at the party."},
+     {k:"int", form:"Would + subject + have + past participle + if + past simple?", ex:"Would you have understood them if you spoke German?"}],
+   examples:[
+     {tag:"aff", label:"permanent characteristic · característica permanente", en:"If I <b>were</b> a man, they <b>would have given</b> me the job."},
+     {tag:"neg", label:"permanent fear · medo permanente", en:"If I <b>weren't</b> afraid of heights, I <b>would have gone</b> on the London Eye."},
+     {tag:"int", label:"ability · capacidade", en:"<b>Would</b> you <b>have understood</b> them if you <b>spoke</b> German?"}],
+   rule:{en:"<strong>Clues:</strong> the condition describes something permanent: personality (<em>shy, afraid</em>), abilities (<em>speak German</em>) or identity (<em>be a man</em>). The result refers to a past moment (<em>yesterday, at the party, last week</em>)."},
+   error:{wrong:"If I weren't so shy, I <em>would speak</em> to him at the party yesterday.", right:"If I weren't so shy, I <strong>would have spoken</strong> to him at the party yesterday.",
+          why:{en:"<em>Yesterday</em> shows a past result: <em>would have</em> + past participle. In writing, <em>weren't</em> is the preferred form for every person."}}}
+];
+
+const strip = h => h.replace(/\p{Extended_Pictographic}/gu,"").replace(/{BEY}/g,"").replace(/<br>/g," ").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+const HAS_TTS = typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance !== "undefined";
+const TTS_IDLE = "🔊 Listen", TTS_PLAY = "⏹ Stop";
+let ttsOn = null;
+
+const bi = (o, cls="") => `<div class="bi ${cls}"><p lang="en">${o.en}</p></div>`;
+const formLabel = f => f.k ? FL[f.k] : f.label;
+
+function gSection(g){
+  const tts = HAS_TTS ? `<button type="button" class="tts" data-tts="${g.id}">${TTS_IDLE}</button>` : "";
+  const forms = `<div class="g-struct">${g.forms.map(f=>{ const L=formLabel(f);
+      return `<div class="g-part"><div class="lbl">${esc(L[0])}</div><div class="form">${esc(f.form)}</div><div class="ex">${esc(f.ex)}</div></div>`; }).join("")}</div>`;
+  const exs = g.examples ? `<div class="g-exs">${g.examples.map(e=>`
+      <div class="g-ex"><div class="el"><span class="tag ${e.tag}">${e.tag.toUpperCase()}</span>${esc(e.label.split(" · ")[0])}</div>
+      <div class="es">${e.en}</div></div>`).join("")}</div>` : "";
+  const err = g.error ? `<div class="g-err">
+      <div class="row"><span class="tw">wrong</span><span class="struck">${g.error.wrong}</span></div>
+      <div class="row"><span class="tok">correct</span><span>${g.error.right}</span></div>
+      ${bi(g.error.why,"why")}</div>` : "";
+  return `<section class="g-sec" id="g-${g.id}" style="--c:${g.c}">
+    <div class="g-head"><span class="g-label">${TYPES[g.id] ? fillIcons(TYPES[g.id].icon)+" " : ""}${esc(g.label)}</span><div class="g-title"><span>${esc(g.title.en)}</span>${tts}</div></div>
+    <div class="g-card">${g.tip ? `<div class="g-tip">${fillIcons(bi(g.tip))}${g.id==="second"?'<span class="credit">Emoji: @beyxkelly</span>':""}</div>` : ""}${bi(g.note,"g-note")}${forms}${exs}${g.rule?`<div class="g-rule">${bi(g.rule)}</div>`:""}</div>${err}
+  </section>`;
+}
+
+function renderGrammar(){
+  const backLabel = S.phase==="setup" ? "← Back to the start" : "← Back to the quiz";
+  const chips = GRAMMAR.map(g=>`<button type="button" class="g-chip" style="--c:${g.c}" data-goto="g-${g.id}">${esc(g.label)}</button>`).join("")
+    + `<button type="button" class="g-chip" data-goto="g-ptvsen">PT ↔ EN</button><button type="button" class="g-chip" data-goto="g-resumo">Summary</button>`;
+  const ptRows = [
+    {pt:"se chove", ptT:"presente do indicativo", en:"if it rains", enT:"present simple", c:["zero"],
+     ptS:"Se chove, fico em casa.", enS:"If it rains, I stay at home."},
+    {pt:"se (eu) for", ptT:"futuro do conjuntivo", en:"if I go", enT:"present simple", c:["first"],
+     ptS:"Se (eu) for a Londres, comprar-te-ei um presente.", ptAlt:"Everyday: …compro-te / vou comprar-te um presente.", enS:"If I go to London, I'll buy you a present."},
+    {pt:"se (eu) fosse", ptT:"pretérito imperfeito do conjuntivo", en:"if I went / were", enT:"past simple", c:["second","mixb"],
+     ptS:"Se (eu) fosse a Londres, comprava-te um presente.", ptAlt:"More formal: …comprar-te-ia um presente.", enS:"If I went to London, I would buy you a present."},
+    {pt:"se (eu) tivesse ido", ptT:"pretérito mais-que-perfeito composto do conjuntivo", en:"if I had gone", enT:"past perfect", c:["third","mixa"],
+     ptS:"Se (eu) tivesse ido a Londres, ter-te-ia comprado um presente.", ptAlt:"Everyday: …tinha-te comprado um presente.", enS:"If I had gone to London, I would have bought you a present."},
+    {pt:"compraria", ptT:"condicional", en:"would buy", enT:"would + infinitive", c:["second","mixa"],
+     ptS:"Se (eu) ganhasse a lotaria, compraria uma casa.", enS:"If I won the lottery, I would buy a house."},
+    {pt:"comprava", ptT:"pretérito imperfeito do indicativo, com valor condicional (coloquial)", en:"would buy", enT:"would + infinitive", c:["second","mixa"],
+     ptS:"Se (eu) ganhasse a lotaria, comprava uma casa.", enS:"If I won the lottery, I would buy a house."},
+    {pt:"teria comprado", ptT:"condicional composto", en:"would have bought", enT:"would have + past participle", c:["third","mixb"],
+     ptS:"Se (eu) tivesse tido o dinheiro, teria comprado o bilhete.", enS:"If I had had the money, I would have bought the ticket."},
+    {pt:"tinha comprado", ptT:"pretérito mais-que-perfeito composto do indicativo, com valor condicional (coloquial)", en:"would have bought", enT:"would have + past participle", c:["third","mixb"],
+     ptS:"Se (eu) tivesse tido o dinheiro, tinha comprado o bilhete.", enS:"If I had had the money, I would have bought the ticket."}
+  ].map(r=>`<div class="ptcard">
+      <div class="ptside"><span class="ptlab">Portuguese</span><b>${esc(r.pt)}</b><span class="ptt">${esc(r.ptT)}</span><p class="pts">${esc(r.ptS)}</p>${r.ptAlt?`<p class="ptalt">${esc(r.ptAlt)}</p>`:""}</div>
+      <div class="ptarrow" aria-hidden="true">→</div>
+      <div class="ptside"><span class="ptlab">English</span><b>${esc(r.en)}</b><span class="ptt">${esc(r.enT)}</span><p class="pts">${esc(r.enS)}</p></div>
+      <div class="ptc">${r.c.map(k=>`<span class="pill" style="--c:${TYPES[k].c}">${TYPES[k].label}</span>`).join("")}</div>
+    </div>`).join("");
+  const sumRows = [
+    ["zero","If + present simple, present simple","Always","Sempre","Facts, habits, general truths","Factos, hábitos, verdades gerais"],
+    ["first","If + present simple, will + infinitive","Future","Futuro","Real, likely situations, promises, warnings","Situações reais e prováveis, promessas, avisos"],
+    ["second","If + past simple, would + infinitive","Present / future","Presente / futuro","Imaginary or unlikely situations, advice","Situações imaginárias ou pouco prováveis, conselhos"],
+    ["third","If + past perfect, would have + past participle","Past","Passado","Imaginary past, regret","Situações imaginárias no passado, arrependimento"],
+    ["mixa","If + past perfect, would + infinitive","Past → present","Passado → presente","Past cause, result now","Causa no passado, consequência agora"],
+    ["mixb","If + past simple, would have + past participle","Present → past","Presente → passado","Permanent characteristic, past result","Característica permanente, consequência no passado"]
+  ].map(r=>`<tr style="--c:${TYPES[r[0]].c}"><td>${TYPES[r[0]].label}<br>${nickHTML(r[0])}</td><td class="f">${esc(r[1])}</td><td>${r[2]}</td><td>${r[4]}</td></tr>`).join("");
+
+  $("stage").innerHTML = `
+    <div class="controls"><button class="btn" type="button" data-gclose>${backLabel}</button></div>
+    <section class="hero"><span class="eyebrow">Grammar</span><h1>Conditionals</h1></section>
+    <div class="g-intro">${bi({en:"This grammar section explains the six conditionals in the quiz, with examples and common errors. Use it before, during or after the quiz whenever you need to check a rule."+(HAS_TTS?" Click <strong>🔊 Listen</strong> to hear each explanation.":"")})}</div>
+    <nav class="g-nav" aria-label="Grammar sections">${chips}</nav>
+    ${GRAMMAR.map(gSection).join("")}
+    <section class="g-sec" id="g-ptvsen" style="--c:var(--red)">
+      <div class="g-head"><span class="g-label">PT ↔ EN</span><div class="g-title"><span>Portuguese and English: what changes</span></div></div>
+      <div class="g-card">${bi({
+        en:"In Portuguese, future and imaginary conditions take the <strong>subjunctive</strong> (<em>se (eu) for, se (eu) fosse, se (eu) tivesse ido</em>), while real habits can take the indicative (<em>se chove, fico em casa</em>). English uses ordinary tenses instead: the <em>present simple</em>, the <em>past simple</em> or the <em>past perfect</em>. The main trace of the old subjunctive is <em>were</em> (<em>If I were you</em>). <em>Would</em> normally stays in the result."},"g-note")}</div>
+      <div class="ptcards">${ptRows}</div>
+    </section>
+    <section class="g-sec" id="g-resumo" style="--c:var(--ink)">
+      <div class="g-head"><span class="g-label">Summary</span><div class="g-title"><span>The six conditionals at a glance</span></div></div>
+      <div class="tablewrap"><table class="g-table"><tr><th></th><th>Form</th><th>Time</th><th>Main use</th></tr>${sumRows}</table></div>
+    </section>
+    <div class="controls"><button class="btn primary" type="button" data-gclose>${backLabel}</button></div>`;
+}
+
+function voices(){
+  const vs = speechSynthesis.getVoices();
+  return {pt: vs.find(v=>v.lang==="pt-PT")||vs.find(v=>v.lang.startsWith("pt"))||null,
+          en: vs.find(v=>v.lang==="en-GB")||vs.find(v=>v.lang.startsWith("en"))||null};
+}
+function stopSpeech(){
+  ttsOn = null;
+  if(HAS_TTS){ try{ speechSynthesis.cancel(); }catch(e){} }
+  document.querySelectorAll(".tts.playing").forEach(b=>{ b.classList.remove("playing"); b.textContent=TTS_IDLE; });
+}
+function speak(id){
+  const was = ttsOn; stopSpeech(); if(was===id) return;
+  const g = GRAMMAR.find(x=>x.id===id); if(!g) return;
+  const segs = [];
+  if(g.tip) segs.push({l:"en",t:strip(g.tip.en)});
+  segs.push({l:"en",t:strip(g.note.en)});
+  g.forms.forEach(f=>{ segs.push({l:"en",t:formLabel(f)[0]+"."}); segs.push({l:"en",t:f.ex.replace(/[✓✗]/g,"")}); });
+  (g.examples||[]).forEach(e=>segs.push({l:"en",t:strip(e.en)}));
+  if(g.rule) segs.push({l:"en",t:strip(g.rule.en)});
+  const V = voices();
+  ttsOn = id;
+  const btn = document.querySelector(`[data-tts="${id}"]`);
+  if(btn){ btn.classList.add("playing"); btn.textContent=TTS_PLAY; }
+  let i = 0;
+  const nextSeg = ()=>{
+    if(ttsOn!==id) return;
+    if(i>=segs.length){ stopSpeech(); return; }
+    const s = segs[i++];
+    const u = new SpeechSynthesisUtterance(s.t);
+    u.lang = s.l==="pt" ? "pt-PT" : "en-GB";
+    if(V[s.l]) u.voice = V[s.l];
+    u.rate = s.l==="en" ? 0.92 : 1;
+    u.onend = nextSeg; u.onerror = nextSeg;
+    try{ speechSynthesis.speak(u); }catch(e){ stopSpeech(); }
+  };
+  nextSeg();
+}
+if(HAS_TTS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged = ()=>{};
+
+function openGrammar(anchor){
+  S.view = "grammar"; render();
+  const el = anchor && $(anchor);
+  if(el) el.scrollIntoView({block:"start"}); else document.querySelector("main").scrollTop = 0;
+}
+function closeGrammar(){
+  stopSpeech(); S.view = "quiz";
+  if(S.phase==="play" && S.revealed) S.justRevealed = true;
+  render();
+}
+document.addEventListener("click", e=>{
+  const g = e.target.closest("[data-gram]"); if(g){ openGrammar(g.dataset.gram); return; }
+  if(e.target.closest("[data-gclose]")){ closeGrammar(); return; }
+  const go = e.target.closest("[data-goto]");
+  if(go){ const el=$(go.dataset.goto); if(el) el.scrollIntoView({block:"start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}); return; }
+  const t = e.target.closest("[data-tts]"); if(t) speak(t.dataset.tts);
+});
+
+const DEFAULT_NAMES = ["Westminster","Piccadilly Circus","Baker Street","Oxford Street"];
+const S = {line:0, phase:"setup", mode:"team", teamCount:4, timeMul:1, names:DEFAULT_NAMES.slice(), teams:[], r:0, q:-1, sel:null, revealed:false, ans:{}, justRevealed:false, view:"quiz"};
+let TOTAL = 0, QTOTAL = 0;
+let timer = {id:null, left:0, total:0, end:0};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const solo = () => S.mode==="solo";
+const key = () => S.r+"-"+S.q;
+const maxPts = r => r.kind==="produce" ? 2 : 1;
+const typeOf = (r,it) => r.kind==="classify" ? it.answer : it.type;
+function totals(){ TOTAL = ROUNDS.reduce((n,r)=>n+r.items.length*maxPts(r),0); QTOTAL = ROUNDS.reduce((n,r)=>n+r.items.length,0); }
+function soloScore(ri){ let s=0; for(const k in S.ans){ if(ri===undefined || k.split("-")[0]===String(ri)) s += S.ans[k].pts||0; } return s; }
+function soloAnswered(){ return Object.values(S.ans).filter(a=>a.revealed).length; }
+function loadSolo(){ if(S.q<0) return; const a=S.ans[key()]; if(a){ S.sel = (a.sel===undefined?null:a.sel); S.revealed = !!a.revealed; } }
+function lineKeys(){ return LINES[S.line].types; }
+function correctIndex(r,it){ return r.kind==="classify" ? lineKeys().indexOf(it.answer) : it.answer; }
+function setLine(i){
+  S.line = i; ROUNDS = LINES[i].rounds; totals();
+  document.documentElement.style.setProperty("--linec", LINES[i].color);
+  const sm = document.querySelector(".brand small"); if(sm) sm.textContent = LINES[i].name+" · "+LINES[i].short;
+}
+function shuffle(a){ const b=a.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+function shuffledRounds(line){
+  return line.rounds.map(r => r.kind!=="mcq" ? r : {...r, items:r.items.map(it=>{
+    const idx = shuffle(it.options.map((_,i)=>i));
+    return {...it, options:idx.map(i=>it.options[i]), whyNot:idx.map(i=>it.whyNot ? it.whyNot[i] : null), answer:idx.indexOf(it.answer)};
+  })});
+}
+const timeFor = r => Math.round(r.time*S.timeMul/5)*5;
+const splitFormula = f => { const i=f.indexOf(", "); return [f.slice(0,i), f.slice(i+2)]; };
+
+/* ── Answer checking for "Join the sentences" ───────────────── */
+function norm(t){
+  t = " " + String(t).toLowerCase().replace(/[’‘`´]/g,"'").replace(/[^a-z' ]+/g," ").replace(/\s+/g," ").trim() + " ";
+  t = t.split(" won't ").join(" will not ").split(" can't ").join(" cannot ").split(" can not ").join(" cannot ");
+  t = t.replace(/n't /g," not ");
+  t = t.replace(/(\w)'ll /g,"$1 will ");
+  t = t.replace(/(\w)'d have /g,"$1 would have ");
+  t = t.replace(/^ if (\w+)'d /,(m,a)=>" if "+a+" had ");
+  t = t.replace(/(\w)'d /g,"$1 would ");
+  t = t.replace(/(\w)'m /g,"$1 am ").replace(/(\w)'re /g,"$1 are ");
+  return t.replace(/\s+/g," ").trim();
+}
+function extraS(n){
+  const OK = ["is","has","was","does","this","us","bus","as","yes","always","plus","its","his"];
+  const re = /\b(can|cannot|could|will|would|might|should|do|does|did)( not)? (\w+)\b/g; let m;
+  while((m = re.exec(n))){ const w = m[3]; if(/s$/.test(w) && !/ss$/.test(w) && !OK.includes(w)) return true; }
+  return false;
+}
+function checkTransform(it, text){
+  let n = norm(text);
+  if(!n.startsWith("if ") && n.includes(" if ")){ const k = n.indexOf(" if "); n = n.slice(k+1)+" "+n.slice(0,k); }
+  const ifOk = new RegExp(it.ifRe).test(n), resOk = new RegExp(it.resRe).test(n);
+  const willIf = /\bif \w+ (will|would)\b/.test(n);
+  const ok = n.length>0 && ifOk && resOk && !willIf && (!it.okRe || new RegExp(it.okRe).test(n));
+  const RESFORM = {zero:/\b(cannot|can|do not|does not|never|\w+s|stay|sleep|melt)\b/, first:/\b(will|am going to|are going to|is going to)( not)? \w+/,
+    second:/\b(would|could|might)( not)? (?!have\b)\w+/, third:/\bwould( not)? have \w+/, mixa:/\bwould( not)? (?!have\b)\w+/, mixb:/\bwould( not)? have \w+/};
+  const resPart = n.replace(/^if .*?\b(?=(i|we|she|he|it|you|they) (will|would|could|might|cannot|can|do|does|am|are|is)\b)/, "");
+  const resFormOk = !!(RESFORM[it.type] && resPart!==n && RESFORM[it.type].test(resPart));
+  const [ifP, res] = splitFormula(TYPES[it.type].formula);
+  let hint = "";
+  if(!ok){
+    if(willIf) hint = "In this conditional, we don't use will or would in the if-clause.";
+    else if(it.fixedWere && /\bif i was you\b/.test(n)) hint = "If I were you is a fixed phrase: use were.";
+    else if(!ifOk) hint = `Check the if-clause. You need: ${ifP.replace(/^If \+ /,"if + ")}.`;
+    else if(extraS(n)) hint = "After can't, doesn't, will, would and similar verbs, use the infinitive without -s: he can't sleep.";
+    else if(resFormOk) hint = "Your verb forms are right. Check the meaning: should the result be positive or negative?";
+    else hint = `Check the result. You need: ${res}.`;
+  } else {
+    const tips = [];
+    if(/\bif (\w+ ){1,3}?was\b/.test(n) && !/\bif i was you\b/.test(n)) tips.push("In writing, were is the preferred form for every person: If she were…, If he were…");
+    if(/^\s*if\b/i.test(text) && !text.includes(",")) tips.push("Tip: put a comma after the if-clause.");
+    hint = tips.join(" ");
+  }
+  return {ok, hint};
+}
+
+function stopTimer(){ if(timer.id){clearInterval(timer.id);timer.id=null;} timer.left=0; timer.total=0; }
+
+/* ── Header line ───────────────── */
+function renderLine(){
+  $("stops").innerHTML = ROUNDS.map((r,i)=>{
+    let cls = "stop";
+    if(S.phase==="end" || (S.phase==="play" && i<S.r)) cls+=" done";
+    if(S.phase==="play" && i===S.r) cls+=" now";
+    return `<div class="${cls}" title="${esc(r.title)}"><i></i><span>${i+1} · ${esc(r.station)}</span></div>`;
+  }).join("");
+  let pct = 0;
+  if(S.phase==="play"){
+    const n = ROUNDS[S.r].items.length;
+    const within = S.q<0 ? 0 : (S.q + (S.revealed?1:0.5))/n;
+    pct = (S.r + within) / (ROUNDS.length-1);
+  } else if(S.phase==="end") pct = 1;
+  $("lineFill").style.width = `calc((100% - 20px) * ${Math.min(pct,1)})`;
+}
+
+/* ── Scoreboard ───────────────── */
+function renderScores(){
+  $("footer").classList.toggle("hide", S.phase==="setup");
+  if(solo()){
+    const sc = soloScore(), n = soloAnswered();
+    $("scores").innerHTML = `<div class="solo-score"><span>Your score</span><span class="big" aria-live="polite">${sc} / ${TOTAL}</span>
+      <div class="meter" aria-hidden="true"><i style="width:${sc/TOTAL*100}%"></i></div><span>${n} of ${QTOTAL} questions answered</span></div>`;
+    return;
+  }
+  $("scores").innerHTML = S.teams.map((t,i)=>`
+    <div class="team ${S.phase==="play" && S.q>=0 && i===turnIdx() ? "turn" : ""}" id="team${i}">
+      <span class="nm">${esc(t.name)}</span>
+      <button type="button" aria-label="Take a point from ${esc(t.name)}" data-minus="${i}">−</button>
+      <span class="sc" aria-live="polite">${t.score}</span>
+      <button type="button" class="plus" aria-label="Give a point to ${esc(t.name)}" data-plus="${i}">+</button>
+    </div>`).join("");
+}
+$("scores").addEventListener("click", e=>{
+  const p = e.target.closest("[data-plus]"), m = e.target.closest("[data-minus]");
+  if(!p && !m) return;
+  const i = +(p||m).dataset[p?"plus":"minus"];
+  S.teams[i].score = Math.max(0, S.teams[i].score + (p?1:-1));
+  renderScores();
+  $("team"+i).classList.add("bump");
+});
+
+/* ── Setup ───────────────── */
+function renderSetup(){
+  const inputs = Array.from({length:S.teamCount},(_,i)=>`
+    <label for="tn${i}">Team ${i+1}<input id="tn${i}" data-tn="${i}" value="${esc(S.names[i]||"Team "+(i+1))}" maxlength="18"></label>`).join("");
+  const rl = ROUNDS.map((r,i)=>`
+    <li><span class="rnum">${i+1}</span><strong>${esc(r.title)}</strong>
+    <span class="kbd">${r.items.length} questions</span></li>`).join("");
+  const tOpts = [["1","Standard"],["1.5","Extra time (+50%)"],["2","Double time"],["0","No timer"]];
+  $("stage").innerHTML = `
+    <section class="hero">
+      <span class="eyebrow">Quiz</span>
+      <h1>Conditionals: <span class="red">mind the gap!</span></h1>
+      <p>Choose your line, then travel through five stops. On the way, you'll identify, complete, join, translate and write conditionals.</p>
+      <div class="row"><button type="button" class="glink" data-gram="g-base">📖 Grammar explanations</button></div>
+    </section>
+    <div class="lines" role="radiogroup" aria-label="Choose your line">${LINES.map((L,i)=>`
+      <button type="button" role="radio" aria-checked="${i===S.line}" class="linecard ${i===S.line?"on":""}" style="--lc:${L.color};--lci:${L.ink}" data-line="${i}">
+        <span class="lc-bar"></span><span class="lc-name">${esc(L.name)}</span><span class="lc-sub">${esc(L.sub)}</span><span class="lc-year">${esc(L.year)}</span>
+</button>`).join("")}</div>
+    <div class="modecards">
+      <section class="panel">
+        <span class="eyebrow">In class · projected</span>
+        <h2>Play in teams</h2>
+        <p class="sub">The teacher projects the quiz. Teams take turns. The team whose turn it is discusses the question in English and gives its answer; the teacher selects it on screen and the app awards the point automatically. Four teams, so every team gets the same number of turns.</p>
+        <div class="row"><label for="tm" style="font-weight:700">Timer</label>
+          <select id="tm">${tOpts.map(([v,l])=>`<option value="${v}" ${+v===S.timeMul?"selected":""}>${l}</option>`).join("")}</select></div>
+        <div class="teamset">${inputs}</div>
+        <div class="row"><button class="btn primary" id="startTeam" type="button">Start the team game</button></div>
+      </section>
+      <section class="panel solo">
+        <span class="eyebrow">On your own · own device</span>
+        <h2>Self-study</h2>
+        <p class="sub">Work at your own pace, with no timer. Every answer comes with an explanation, and you can go back and read it again. At the end you'll see which conditionals to review.</p>
+        <div class="row"><button class="btn primary" id="startSolo" type="button">Start self-study</button></div>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>${esc(LINES[S.line].name)}: five stops, the same on every line</h2>
+      <ol class="rlist">${rl}</ol>
+      <span class="kbd">Keys: → next · ← back · 1–${lineKeys().length} or A–D choose · Space reveals (teams) · T starts the timer (teams)</span>
+    </section>`;
+  $("tm").onchange = e=>{ S.timeMul = +e.target.value; };
+  document.querySelectorAll("[data-line]").forEach(b=> b.onclick = ()=>{ saveNames(); setLine(+b.dataset.line); render(); });
+  $("startTeam").onclick = ()=> start("team");
+  $("startSolo").onclick = ()=> start("solo");
+}
+function saveNames(){ document.querySelectorAll("[data-tn]").forEach(inp=>{ S.names[+inp.dataset.tn] = inp.value.trim() || "Team "+(+inp.dataset.tn+1); }); }
+function start(mode){
+  S.mode = mode;
+  if(mode==="team"){ saveNames(); S.teams = Array.from({length:S.teamCount},(_,i)=>({name:S.names[i],score:0})); }
+  else S.teams = [];
+  ROUNDS = shuffledRounds(LINES[S.line]); totals();
+  S.ans = {}; S.phase="play"; S.r=0; S.q=-1; S.sel=null; S.revealed=false;
+  render();
+}
+
+/* ── Round intro ───────────────── */
+function renderIntro(){
+  const r = ROUNDS[S.r];
+  const how = (solo() ? r.soloHow : r.how).replace("{N}", lineKeys().length);
+  const meta = solo() || S.timeMul===0 ? `${r.items.length} questions` : `${r.items.length} questions · ${timeFor(r)} seconds each`;
+  $("stage").innerHTML = `
+    <section class="intro">
+      <span class="eyebrow">Stop ${S.r+1} of ${ROUNDS.length} · ${meta}</span>
+      <h2 class="big">${esc(r.title)}</h2>
+      <p>${esc(how)}</p>
+      <div class="controls">
+        <button class="btn" type="button" id="backBtn">Back</button>
+        <button class="btn" type="button" data-gram="g-base">📖 Grammar</button>
+        <button class="btn primary" type="button" id="goBtn">Start stop ${S.r+1}</button>
+      </div>
+    </section>`;
+  $("goBtn").onclick = next;
+  $("backBtn").onclick = back;
+}
+
+/* ── Questions ───────────────── */
+function sentenceHTML(r,it){
+  let t = esc(it.text);
+  if(t.includes("___")){
+    const fill = S.revealed ? `<span class="gap filled">${esc(it.options[it.answer])}</span>` : `<span class="gap">____</span>`;
+    t = t.replace("___", fill);
+  }
+  const src = it.src ? `<span class="src">${esc(it.src)}</span>` : "";
+  const alt = it.alt ? `<span class="alt">${esc(it.alt)}</span>` : "";
+  return `<div class="sentence">${src}${t}${alt}</div>`;
+}
+function timerHTML(r){
+  if(solo() || S.timeMul===0) return "";
+  const t = timeFor(r);
+  return `<div class="timer" id="timer"><button class="btn" type="button" id="tBtn">Start timer · ${t} s</button>
+    <button class="btn" type="button" id="tPlus" title="Add 30 seconds">+30 s</button>
+    <div class="tbar"><i id="tFill" style="width:100%"></i></div><span id="tNum">${t}</span></div>`;
+}
+function optClass(i, ans){
+  let c = "opt";
+  if(S.revealed){
+    if(i===ans) c+=" is-correct";
+    else if(i===S.sel) c+=" is-wrong";
+    else c+=" dim";
+  } else if(i===S.sel) c+=" sel";
+  return c;
+}
+function mark(i, ans){
+  if(!S.revealed) return "";
+  if(i===ans) return `<span class="mark" aria-label="correct answer">✓</span>`;
+  if(i===S.sel) return `<span class="mark" aria-label="wrong answer">✗</span>`;
+  return "";
+}
+const targetHTML = type => { const T=TYPES[type];
+  return `<div class="target"><span class="pill" style="--c:${T.c}">${T.label} conditional</span>${nickHTML(type)}<span class="formula">${esc(T.formula)}</span><button type="button" class="glink" data-gram="g-${type}">📖 Grammar</button></div>`; };
+function feedbackHTML(it, ok, whyNot){
+  const T = TYPES[it.type];
+  const verdict = ok===undefined ? "" : `<span class="verdict ${ok?"ok":"bad"}">${ok?"✓ Correct!":"✗ Not quite."}</span>`;
+  const wn = whyNot ? `<p class="whynot"><b>Why not “${esc(whyNot[0])}”?</b> ${esc(whyNot[1])}</p>` : "";
+  return `<div class="feedback ${ok===false?"bad":""}" id="fb" role="status">
+    <div class="fb-head">${verdict}<span class="pill" style="--c:${T.c}">${T.label} conditional</span>${nickHTML(it.type)}<span class="formula">${esc(T.formula)}</span><button type="button" class="glink" data-gram="g-${it.type}">📖 Grammar</button></div>
+    ${wn}<p>${esc(it.why)}</p></div>`;
+}
+function rubricHTML(type, a, interactive){
+  const [ifPart, res] = splitFormula(TYPES[type].formula);
+  const crit = [`If-clause: ${ifPart.replace(/^If \+ /,"")}`, `Result: ${res}`, "Meaning: it fits the prompt and makes sense"];
+  const checks = a.checks || [false,false,false];
+  const items = crit.map((c,i)=> interactive
+    ? `<li><button type="button" class="crit ${checks[i]?"on":""}" data-crit="${i}" aria-pressed="${checks[i]}"><span class="box" aria-hidden="true">${checks[i]?"✓":""}</span>${esc(c)}</button></li>`
+    : `<li><span class="box" aria-hidden="true">${i+1}</span>${esc(c)}</li>`).join("");
+  const form = checks[0]&&checks[1]?1:0, mean = checks[2]?1:0;
+  const note = interactive
+    ? `<p class="rubric-pts">Form (1 and 2): <b>${form}</b> · Meaning (3): <b>${mean}</b> · <b>${form+mean} / 2 points</b></p>`
+    : `<p class="rubric-pts">Form (1 and 2): 1 point · Meaning (3): 1 point</p>`;
+  return `<div class="rubric"><span class="eyebrow">${interactive?"Check your sentence":"Up to 2 points"}</span><ul>${items}</ul>${note}<p class="rubric-tip">Tip: put a comma after the if-clause when it comes first.</p></div>`;
+}
+function renderQuestion(){
+  const r = ROUNDS[S.r], it = r.items[S.q];
+  const a = S.ans[key()] || {};
+  const turn = solo() ? "" : `<span class="turnbadge">${esc(dictTeam())}'s turn</span>`;
+  const head = `<div class="qbar"><span class="qcount">Stop ${S.r+1} · Question ${S.q+1} of ${r.items.length}</span>${turn}${timerHTML(r)}</div>`;
+  let body = "", fb = "", ctrl = "";
+  const ans = correctIndex(r,it);
+  const choiceOk = (S.revealed && S.sel!==null) ? S.sel===ans : undefined;
+  const wrongSel = S.revealed && S.sel!==null && S.sel!==ans;
+
+  if(r.kind==="classify"){
+    body = `<p class="lead">${esc(it.lead||r.lead)}</p>${sentenceHTML(r,it)}
+      <div class="opts types">${lineKeys().map((k,i)=>`
+        <button type="button" class="${optClass(i,ans)} type" style="--c:${TYPES[k].c}" data-opt="${i}" ${S.revealed?"disabled":""}>
+          <span class="key">${i+1}</span><span class="lab">${TYPES[k].label}${nickHTML(k)}<span class="hint">${TYPES[k].hint}</span></span>${mark(i,ans)}</button>`).join("")}</div>`;
+    if(S.revealed){
+      const k = lineKeys()[S.sel], C = TYPES[it.answer];
+      const wn = wrongSel ? [TYPES[k].label, `${TYPES[k].label} is ${TYPES[k].formula}. This sentence has ${C.formula}.`] : null;
+      fb = feedbackHTML({...it, type:it.answer}, choiceOk, wn);
+    }
+  }
+  else if(r.kind==="mcq"){
+    body = `<p class="lead">${esc(it.lead||r.lead)}</p>${sentenceHTML(r,it)}
+      <div class="opts">${it.options.map((o,i)=>`
+        <button type="button" class="${optClass(i,ans)}" data-opt="${i}" ${S.revealed?"disabled":""}>
+          <span class="key">${"ABCD"[i]}</span><span>${esc(o)}</span>${mark(i,ans)}</button>`).join("")}</div>`;
+    if(S.revealed) fb = feedbackHTML(it, choiceOk, wrongSel && it.whyNot && it.whyNot[S.sel] ? [it.options[S.sel], it.whyNot[S.sel]] : null);
+  }
+  else if(r.kind==="transform"){
+    body = `${targetHTML(it.type)}<p class="lead">${esc(r.lead)}</p>
+      <div class="sentence"><span class="src">Situation</span>${esc(it.given)}</div>
+      <p class="startw">Start with: <b>${esc(it.start)}…</b></p>` +
+      (solo()
+        ? `<label for="tf" class="lead">Your sentence (end it with a full stop to see if it's right)</label><textarea id="tf" rows="2" placeholder="${esc(it.start)}…" ${S.revealed?"readonly":""}>${esc(a.text||"")}</textarea>`
+        : `<p class="dictate"><b>${esc(dictTeam())}</b> dictates its sentence to the teacher (1 point if it's correct). The other teams write theirs in their notebooks.</p><label for="tf" class="lead">The teacher types it here (end it with a full stop to see if it's right):</label><textarea id="tf" rows="2" placeholder="${esc(it.start)}…" ${S.revealed?"readonly":""}>${esc(a.text||"")}</textarea>`);
+    if(S.revealed){
+      const checked = a.text!==undefined && a.hint!==undefined;
+      const verdict = checked ? `<span class="verdict ${a.pts?"ok":"bad"}">${a.pts?"✓ Correct!":"✗ Not quite."}</span>` : "";
+      const hint = checked && a.hint ? `<p class="whynot">${esc(a.hint)}</p>` : "";
+      const canRetry = solo() && checked && !a.pts && (a.tries||1) < 2;
+      fb = canRetry
+        ? `<div class="feedback bad" id="fb" role="status"><div class="fb-head">${verdict}</div>${hint}<p>You have one more try.</p><button type="button" class="btn dark" id="retryBtn">Try again</button></div>`
+        : `<div class="feedback ${checked&&!a.pts?"bad":""}" id="fb" role="status"><div class="fb-head">${verdict}<span class="eyebrow">Model answer</span></div>
+        <p class="modelline">${esc(it.model)}</p>${hint}<p>${esc(it.why)}</p></div>`;
+    }
+
+  }
+  else {
+    body = `${targetHTML(it.type)}<p class="prompt">${esc(it.prompt)}</p>` +
+      (solo()
+        ? `<label for="mine" class="lead">Your sentence (end it with a full stop or a question mark to see the model)</label><textarea id="mine" placeholder="Type your sentence here…" ${S.revealed?"readonly":""}>${esc(a.text||"")}</textarea>`
+        : `<p class="dictate"><b>${esc(dictTeam())}</b> dictates its sentence to the teacher. The other teams write theirs in their notebooks.</p><label for="mine" class="lead">The teacher types it here (end it with a full stop or a question mark to see the model):</label><textarea id="mine" placeholder="Type the team's sentence here…">${esc(a.text||"")}</textarea>${rubricHTML(it.type, a, false)}`);
+    if(S.revealed){
+      fb = `<div class="model" id="fb" role="status"><span class="eyebrow">A model answer</span>${it.model.map(m=>`<p>${esc(m)}</p>`).join("")}</div>` +
+        rubricHTML(it.type, a, true);
+    }
+  }
+
+  const sayTxt = r.kind==="transform" ? it.given : r.kind==="produce" ? it.prompt : (it.text||"").replace("___","blank");
+  const sayLang = it.src==="Portuguese" ? "pt-PT" : "en-GB";
+  const optLang = it.src==="English" ? "pt-PT" : "en-GB";
+  const qSegs = [{t:sayTxt, l:sayLang}];
+  if(r.kind==="classify") lineKeys().forEach((k,i)=> qSegs.push({t:`${i+1}: ${TYPES[k].label}`, l:"en-GB"}));
+  if(r.kind==="mcq") it.options.forEach((o,i)=> qSegs.push({t:`${"ABCD"[i]}: ${o}`, l:optLang}));
+  const say = (solo() && HAS_TTS) ? `<button type="button" class="glink" id="sayBtn">🔊 Listen to the question${r.kind==="mcq"||r.kind==="classify"?" and options":""}</button>` : "";
+  const last = S.r===ROUNDS.length-1 && S.q===r.items.length-1;
+  const canReveal = !S.revealed && (r.kind==="produce" || !solo());
+  const revealLabel = (r.kind==="produce"||r.kind==="transform") ? "Show the model answer" : "Reveal answer";
+  $("stage").innerHTML = `${head}${say}${body}${fb}
+    <div class="controls">
+      <button class="btn" type="button" id="backBtn">Back</button>
+      <span class="spacer"></span>
+      ${ctrl}${canReveal ? `<button class="btn dark" type="button" id="revBtn">${revealLabel}</button>` : ""}
+      <button class="btn primary" type="button" id="nextBtn">${last?(solo()?"See my results":"Final scores"):"Next"}</button>
+    </div>`;
+
+  document.querySelectorAll("[data-opt]").forEach(b=> b.onclick = ()=> choose(+b.dataset.opt));
+  document.querySelectorAll("[data-crit]").forEach(b=> b.onclick = ()=>{
+    const cur = S.ans[key()] || {}; const checks = (cur.checks||[false,false,false]).slice();
+    checks[+b.dataset.crit] = !checks[+b.dataset.crit];
+    const pts = (checks[0]&&checks[1]?1:0) + (checks[2]?1:0);
+    if(!solo()) award(pts - (cur.pts||0));
+    S.ans[key()] = {...cur, checks, pts};
+    renderQuestion(); renderScores();
+  });
+  const finished = v => /[.!?]\s*$/.test(v) && v.trim().split(/\s+/).length >= 5;
+  const typedEnd = e => e && e.inputType === "insertText" && /^[.!?]$/.test(e.data || "");
+  const mine = $("mine");
+  if(mine && !S.revealed){
+    mine.oninput = e=>{ S.ans[key()] = {...(S.ans[key()]||{}), text:mine.value}; if(typedEnd(e) && finished(mine.value)) reveal(); };
+    mine.onkeydown = e=>{ if(e.key==="Enter"){ e.preventDefault(); if(mine.value.trim()) reveal(); } };
+  }
+  const tf = $("tf");
+  if(tf && !S.revealed){
+    tf.oninput = e=>{ S.ans[key()] = {...(S.ans[key()]||{}), text:tf.value}; if(typedEnd(e) && finished(tf.value)) checkTf(); };
+    tf.onkeydown = e=>{ if(e.key==="Enter"){ e.preventDefault(); checkTf(); } };
+    if(!solo() || S.q>=0) setTimeout(()=>{ try{ tf.focus(); }catch(e){} }, 0);
+  }
+  if($("sayBtn")) $("sayBtn").onclick = ()=> sayQueue(qSegs);
+  if($("retryBtn")) $("retryBtn").onclick = ()=>{ S.ans[key()] = {...S.ans[key()], revealed:false, text:String(S.ans[key()].text||"").replace(/[.!?]+\s*$/,"")}; S.revealed = false; renderQuestion(); renderScores(); const t=$("tf"); if(t){ t.focus(); t.setSelectionRange(t.value.length,t.value.length); } };
+  if(solo() && HAS_TTS && $("fb")){
+    const bt = document.createElement("button"); bt.type="button"; bt.className="glink"; bt.id="fbSay"; bt.textContent="🔊 Listen to the feedback";
+    $("fb").appendChild(bt);
+    bt.onclick = ()=> sayQueue(splitLang($("fb").innerText.replace("🔊 Listen to the feedback","").replace("📖 Grammar","")));
+  }
+  $("backBtn").onclick = back;
+  $("nextBtn").onclick = next;
+  if($("revBtn")) $("revBtn").onclick = reveal;
+  if($("tBtn")) $("tBtn").onclick = ()=> startTimer(timeFor(r));
+  if($("tPlus")) $("tPlus").onclick = addTime;
+  if(timer.id || timer.left) paintTimer();
+}
+const PT_RE = /(se (?:\(eu\) |ela )(?:for|fosse|tivesse (?:ido|perdido|tido))|comprar-te-ei|comprar-te-ia|comprava(?:-te)?|compraria|compro-te|vou comprar-te|tivesse (?:ido|perdido|tido)|ter-te-ia comprado|ter-me-iam dado|tinha-te comprado|tinham-me dado|agora tinha|futuro do conjuntivo|ser homem|sempre que)/gi;
+function splitLang(text){
+  const segs = []; let last = 0, m; PT_RE.lastIndex = 0;
+  while((m = PT_RE.exec(text))){
+    if(m.index > last) segs.push({t:text.slice(last, m.index), l:"en-GB"});
+    segs.push({t:m[0], l:"pt-PT"}); last = m.index + m[0].length;
+  }
+  if(last < text.length) segs.push({t:text.slice(last), l:"en-GB"});
+  return segs.filter(sg=>sg.t.trim());
+}
+function sayQueue(segs){
+  if(!HAS_TTS) return;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const V = voices();
+  segs.forEach(sg=>{
+    const u = new SpeechSynthesisUtterance(String(sg.t).replace(/[✓✗]/g,"").replace(/\p{Extended_Pictographic}/gu,"").replace(/\((eu)\)/g,"$1"));
+    u.lang = sg.l; const v = V[sg.l.startsWith("pt") ? "pt" : "en"]; if(v) u.voice = v;
+    u.rate = sg.l.startsWith("pt") ? 1 : 0.92;
+    try{ speechSynthesis.speak(u); }catch(e){}
+  });
+}
+function turnIdx(){
+  if(!S.teams.length) return -1;
+  const n = ROUNDS.slice(0,S.r).reduce((t,r)=>t+r.items.length,0) + Math.max(S.q,0);
+  return n % S.teams.length;
+}
+function dictTeam(){ const i = turnIdx(); return i<0 ? "One team" : S.teams[i].name; }
+function award(delta){
+  const i = turnIdx(); if(i<0 || !delta) return;
+  S.teams[i].score = Math.max(0, S.teams[i].score + delta);
+}
+function checkTf(){
+  const r = ROUNDS[S.r], it = r.items[S.q];
+  const text = ($("tf") ? $("tf").value : "").trim();
+  if(!text){ $("tf").focus(); return; }
+  const res = checkTransform(it, text);
+  const prev = S.ans[key()] || {};
+  const tries = (prev.tries||0) + 1;
+  S.ans[key()] = {text, revealed:true, pts: res.ok?1:0, hint: res.hint, tries};
+  if(!solo() && !prev.revealed) award(res.ok?1:0);
+  S.revealed = true; S.justRevealed = true; render();
+}
+function choose(i){
+  if(S.revealed) return;
+  const r = ROUNDS[S.r], it = r.items[S.q];
+  S.sel = i; S.revealed = true; S.justRevealed = true; stopTimer();
+  const pts = i===correctIndex(r,it) ? 1 : 0;
+  S.ans[key()] = {sel:i, revealed:true, pts};
+  if(!solo()) award(pts);
+  render();
+}
+
+/* ── Timer ───────────────── */
+function startTimer(sec){
+  stopTimer();
+  timer.total = sec; timer.left = sec; timer.end = Date.now() + sec*1000;
+  timer.id = setInterval(tick, 250);
+  paintTimer();
+}
+function tick(){
+  timer.left = Math.max(0, Math.ceil((timer.end-Date.now())/1000));
+  paintTimer();
+  if(timer.left<=0){ clearInterval(timer.id); timer.id=null; }
+}
+function addTime(){
+  if(!timer.id){ startTimer(timeFor(ROUNDS[S.r]) + 30); return; }
+  timer.end += 30000; timer.total += 30; tick();
+}
+function paintTimer(){
+  const el = $("timer"); if(!el || !timer.total) return;
+  $("tNum").textContent = timer.left>0 ? timer.left : "Time's up!";
+  $("tFill").style.width = (timer.left/timer.total*100)+"%";
+  el.classList.toggle("low", timer.left<=Math.max(5, timer.total*0.2));
+  el.classList.toggle("up", timer.left===0);
+  $("tBtn").textContent = timer.left>0 ? "Restart timer" : "Start again";
+}
+
+/* ── End ───────────────── */
+function renderEnd(){
+  if(solo()){
+    const sc = soloScore(), pct = Math.round(sc/TOTAL*100);
+    const msg = pct>=85 ? "Excellent! If you keep this up, the conditionals will never trick you again."
+              : pct>=60 ? "Good work. Have a look at the hints below, then try again."
+              : "Keep practising. Have a look at the hints below, then have another go.";
+    const per = {};
+    ROUNDS.forEach((r,ri)=> r.items.forEach((it,qi)=>{
+      const t = typeOf(r,it), a = S.ans[ri+"-"+qi];
+      per[t] = per[t] || {e:0, m:0}; per[t].m += maxPts(r); per[t].e += (a && a.pts) || 0;
+    }));
+    const byType = lineKeys().filter(k=>per[k]).map(k=>{
+      const p = per[k], q = Math.round(p.e/p.m*100), T = TYPES[k];
+      const act = q>=75 ? `<span class="good">✓ Well done</span>` : `<button type="button" class="glink" data-gram="g-${k}">📖 Review</button>`;
+      return `<div class="trow"><span class="pill" style="--c:${T.c}">${T.label}</span>${nickHTML(k)}
+        <div class="meter" aria-hidden="true"><i style="width:${q}%;background:${T.c}"></i></div><span class="tn">${p.e} / ${p.m}</span>${act}</div>`;
+    }).join("");
+    const byStop = ROUNDS.map((r,i)=>`<div class="brow"><span>${i+1}. ${esc(r.title)}</span><span>${soloScore(i)} / ${r.items.length*maxPts(r)}</span></div>`).join("");
+    $("stage").innerHTML = `
+      <section class="hero"><span class="eyebrow">${esc(LINES[S.line].name)} · end of the line · your results</span>
+        <h1><span class="red">${sc} / ${TOTAL}</span> · ${pct}%</h1><p>${msg}</p></section>
+      <section class="panel"><h2>What to review</h2><p class="sub">A hint, not a test result: some conditionals have only a few questions on this line.</p><div class="types-res">${byType}</div></section>
+      <section class="panel"><h2>By stop</h2><div class="breakdown">${byStop}</div></section>
+      <div class="controls"><button class="btn" type="button" id="backBtn">Back</button>
+        <span class="spacer"></span>
+        <button class="btn" type="button" id="menuBtn">Change line or mode</button>
+        <button class="btn primary" type="button" id="againBtn">Try again</button></div>`;
+    $("backBtn").onclick = back;
+    $("menuBtn").onclick = ()=>{ S.phase="setup"; setLine(S.line); render(); };
+    $("againBtn").onclick = ()=> start("solo");
+    return;
+  }
+  const ranked = S.teams.map(t=>({...t})).sort((a,b)=>b.score-a.score);
+  const top = ranked.filter(t=>t.score===ranked[0].score);
+  let pos=0, prev=null;
+  const rows = ranked.map((t,i)=>{ if(t.score!==prev){pos=i+1;prev=t.score;}
+    return `<div class="prow ${pos===1?"first":""}"><span class="pos">${pos}</span><span>${esc(t.name)}</span><span class="pts">${t.score} pts</span></div>`; }).join("");
+  $("stage").innerHTML = `
+    <section class="hero"><span class="eyebrow">${esc(LINES[S.line].name)} · end of the line</span>
+      <h1>${ranked[0].score>0 ? `<span class="red">${esc(top.map(t=>t.name).join(" & "))}</span> win${top.length>1?"":"s"}!` : "Final scores"}</h1>
+      <p>Well done, everyone! If you keep practising, you'll all be conditional experts.</p></section>
+    <div class="podium">${rows}</div>
+    <div class="controls"><button class="btn" type="button" id="backBtn">Back</button>
+      <span class="spacer"></span><button class="btn primary" type="button" id="againBtn">Play again</button></div>`;
+  $("backBtn").onclick = back;
+  $("againBtn").onclick = ()=>{ S.phase="setup"; setLine(S.line); render(); };
+}
+
+/* ── Navigation ───────────────── */
+function reveal(){
+  if(S.phase!=="play"||S.q<0||S.revealed) return;
+  const r = ROUNDS[S.r];
+  if(solo() && r.kind!=="produce") return;
+  S.revealed = true; S.justRevealed = true; stopTimer();
+  if(solo()) S.ans[key()] = {...(S.ans[key()]||{}), revealed:true, pts:(S.ans[key()]||{}).pts||0};
+  render();
+}
+function next(){
+  if(S.phase!=="play") return;
+  stopTimer();
+  const r = ROUNDS[S.r];
+  if(S.q < r.items.length-1){ S.q++; }
+  else if(S.r < ROUNDS.length-1){ S.r++; S.q=-1; }
+  else { S.phase="end"; }
+  S.sel=null; S.revealed=false; loadSolo(); render();
+}
+function back(){
+  stopTimer();
+  if(S.phase==="end"){ S.phase="play"; S.r=ROUNDS.length-1; S.q=ROUNDS[S.r].items.length-1; }
+  else if(S.q>=0){ S.q--; }
+  else if(S.r>0){ S.r--; S.q=ROUNDS[S.r].items.length-1; }
+  else { S.phase="setup"; setLine(S.line); }
+  S.sel=null; S.revealed=false; loadSolo(); render();
+}
+function render(){
+  $("gramBtn").textContent = S.view==="grammar" ? (S.phase==="setup" ? "← Start" : "← Quiz") : "📖 Grammar";
+  if(S.view==="grammar"){ renderGrammar(); renderLine(); $("footer").classList.add("hide"); return; }
+  if(S.phase==="setup") renderSetup();
+  else if(S.phase==="end") renderEnd();
+  else if(S.q<0) renderIntro();
+  else renderQuestion();
+  renderLine(); renderScores();
+  const fb = $("fb");
+  if(S.justRevealed && fb){
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    fb.scrollIntoView({block:"nearest", behavior: smooth?"smooth":"auto"});
+  } else document.querySelector("main").scrollTop = 0;
+  S.justRevealed = false;
+}
+
+document.addEventListener("keydown", e=>{
+  if(S.view==="grammar") return;
+  if(S.phase!=="play" && S.phase!=="end") return;
+  if(e.target.matches("input,select,textarea")) return;
+  const k = e.key;
+  const inQ = S.phase==="play" && S.q>=0;
+  if(k==="ArrowRight"){ e.preventDefault(); next(); }
+  else if(k==="ArrowLeft"){ e.preventDefault(); back(); }
+  else if(k===" " && inQ){ e.preventDefault(); reveal(); }
+  else if((k==="t"||k==="T") && inQ && !solo() && S.timeMul>0){ startTimer(timeFor(ROUNDS[S.r])); }
+  else if(inQ && !S.revealed){
+    const r = ROUNDS[S.r]; let i=-1;
+    if(r.kind==="classify" && /^[1-9]$/.test(k) && +k<=lineKeys().length) i=+k-1;
+    if(r.kind==="mcq" && /^[a-dA-D]$/.test(k)) i="abcd".indexOf(k.toLowerCase());
+    if(i>=0) choose(i);
+  }
+});
+
+$("gramBtn").onclick = ()=>{ if(S.view==="grammar") closeGrammar(); else openGrammar(); };
+$("fsBtn").onclick = async ()=>{
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  }catch(err){ $("fsBtn").textContent = "Full screen unavailable"; }
+};
+document.addEventListener("fullscreenchange", ()=>{ $("fsBtn").textContent = document.fullscreenElement ? "Exit full screen" : "Full screen"; });
+
+/* ── Theme ───────────────── */
+function store(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function read(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  const dark = t==="dark";
+  $("themeBtn").textContent = dark ? "☀ Light" : "☾ Dark";
+  $("themeBtn").setAttribute("aria-pressed", String(dark));
+}
+(function initPrefs(){
+  const host = document.documentElement.getAttribute("data-theme");
+  const sys = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  applyTheme(read("lc-theme") || host || sys);
+})();
+$("themeBtn").onclick = ()=>{ const t = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark"; applyTheme(t); store("lc-theme",t); };
+
+setLine(0);
+render();
+</script>
+</body>
+</html>
