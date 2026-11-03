@@ -319,6 +319,8 @@ textarea:focus{border-color:var(--ink);outline:none}
 .dictate{background:var(--card);border-radius:12px;padding:10px 16px}
 .turnbadge{background:var(--card);color:var(--ink);border:3px solid var(--linec,var(--red));border-radius:999px;padding:5px 16px;font-weight:800}
 .team.turn{border-color:var(--linec,var(--red));box-shadow:0 0 0 3px var(--linec,var(--red)) inset}
+.steal{background:var(--linec,var(--red));color:var(--on-c);border-radius:10px;padding:8px 14px;font-weight:700}
+:root .steal{color:#0b1220;background:#ffd300}
 </style>
 </head>
 <body>
@@ -358,16 +360,16 @@ const nickHTML = k => `<span class="nick">${fillIcons(TYPES[k].icon)} ${fillIcon
 
 const TASKS = {
   identify: {title:"Which conditional?", label:"Identify", kind:"classify", time:45, lead:"Which conditional is it?",
-    how:"Teams take turns: the screen shows whose turn it is. That team agrees on an answer, and one member gives it and explains it in English. A correct answer earns 1 point automatically.",
+    how:"Teams take turns: the screen shows whose turn it is. That team agrees on an answer, and one member gives it and explains it in English. A correct answer earns 1 point automatically. All the other teams write their answer in their notebooks too: if the team on turn is wrong, every team with the right answer earns a point.",
     soloHow:"Read each sentence and choose the conditional. You'll see the answer and an explanation straight away."},
   gap: {title:"Fill the gap", label:"Fill the gap", kind:"mcq", time:45, lead:"Choose the missing words.",
-    how:"Teams take turns. The team whose turn it is agrees on A, B, C or D, and one member explains why in English. A correct answer earns 1 point automatically.",
+    how:"Teams take turns. The team whose turn it is agrees on A, B, C or D, and one member explains why in English. A correct answer earns 1 point automatically. All the other teams write their answer in their notebooks too: if the team on turn is wrong, every team with the right answer earns a point.",
     soloHow:"Choose the missing words: A, B, C or D. Read the explanation after each answer, even when you're right."},
   transform: {title:"Join the sentences", label:"Join", kind:"transform", time:60, lead:"Rewrite the situation as one conditional sentence.",
     how:"Read the situation and agree on one conditional sentence. Start with the words given. The team whose turn it is dictates its sentence to the teacher and explains the verb forms; a correct sentence earns 1 point automatically. The other teams write theirs in their notebooks.",
     soloHow:"Read the situation and type one conditional sentence. Start with the words given. When you finish it with a full stop or press Enter, you'll see straight away if it's right. You have two tries."},
   translate: {title:"Translate or correct", label:"Translate", kind:"mcq", time:60,
-    how:"Teams take turns. Before answering, one member of the team whose turn it is explains to the others why the other options are wrong, in English or in any language they share. A correct answer earns 1 point automatically.",
+    how:"Teams take turns. Before answering, one member of the team whose turn it is explains to the others why the other options are wrong, in English or in any language they share. A correct answer earns 1 point automatically. All the other teams write their answer in their notebooks too: if the team on turn is wrong, every team with the right answer earns a point.",
     soloHow:"Choose the best translation or the right correction. Before you click, say aloud why the other options are wrong."},
   write: {title:"Write your own", label:"Write", kind:"produce", time:120,
     how:"Agree on your own sentence with the conditional shown. The team whose turn it is dictates its sentence to the teacher and explains the verb forms; the teacher ticks the criteria on the screen and the points (up to 2) are added automatically. The other teams write theirs in their notebooks. The last task is a question for another team, who must answer it in a full sentence.",
@@ -1059,7 +1061,7 @@ function renderSetup(){
       <section class="panel">
         <span class="eyebrow">In class · projected</span>
         <h2>Play in teams</h2>
-        <p class="sub">The teacher projects the quiz. Teams take turns. The team whose turn it is discusses the question in English and gives its answer; the teacher selects it on screen and the app awards the point automatically. Four teams, so every team gets the same number of turns.</p>
+        <p class="sub">The teacher projects the quiz. Teams take turns. The team whose turn it is discusses the question in English and gives its answer; the teacher selects it on screen and the app awards the point automatically. The other teams write their answers in their notebooks and, if the team on turn is wrong, every team with the right answer earns a point. Four teams, so every team gets the same number of turns.</p>
         <div class="row"><label for="tm" style="font-weight:700">Timer</label>
           <select id="tm">${tOpts.map(([v,l])=>`<option value="${v}" ${+v===S.timeMul?"selected":""}>${l}</option>`).join("")}</select></div>
         <div class="teamset">${inputs}</div>
@@ -1151,7 +1153,8 @@ function feedbackHTML(it, ok, whyNot){
   const T = TYPES[it.type];
   const verdict = ok===undefined ? "" : `<span class="verdict ${ok?"ok":"bad"}">${ok?"✓ Correct!":"✗ Not quite."}</span>`;
   const wn = whyNot ? `<p class="whynot"><b>Why not “${esc(whyNot[0])}”?</b> ${esc(whyNot[1])}</p>` : "";
-  return `<div class="feedback ${ok===false?"bad":""}" id="fb" role="status">
+  const steal = (!solo() && ok===false) ? `<p class="steal"><b>Steal!</b> Every team with the right answer in its notebook earns a point: use + to give it.</p>` : "";
+  return `<div class="feedback ${ok===false?"bad":""}" id="fb" role="status">${steal}
     <div class="fb-head">${verdict}<span class="pill" style="--c:${T.c}">${T.label} conditional</span>${nickHTML(it.type)}<span class="formula">${esc(T.formula)}</span><button type="button" class="glink" data-gram="g-${it.type}">📖 Grammar</button></div>
     ${wn}<p>${esc(it.why)}</p></div>`;
 }
